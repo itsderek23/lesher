@@ -1,6 +1,6 @@
 :root { --max: 1100px; }
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; }
+html, body { margin: 0; padding: 0; font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; overflow-x: hidden; }
 a { color: inherit; }
 .wrap { max-width: var(--max); margin: 0 auto; padding: 3rem 1rem; }
 .site { background: linear-gradient(180deg, #f7f7f7, #fff); border-bottom: 1px solid #eee; }
@@ -22,6 +22,14 @@ a { color: inherit; }
 .foot { border-top: 1px solid #eee; color: #555; }
 
 .note { color: #666; font-size: .95rem; }
+
+/* Responsive images */
+img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
 
 /* Mobile tweaks */
 @media (max-width: 800px) {
