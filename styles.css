@@ -106,3 +106,9 @@ a { color: #002147; }
     border-bottom: none;
   }
 }
+
+
+.band_logo {
+  height: 24px;
+  vertical-align:middle;
+}
