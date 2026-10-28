@@ -124,7 +124,8 @@
       this.prevBtn = html('button', { type: 'button', title: 'Previous step' }, '◀︎ Step');
       this.playBtn = html('button', { type: 'button', class: 'primary' }, '▶︎ Play');
       this.nextBtn = html('button', { type: 'button', title: 'Next step' }, 'Step ▶︎');
-      this.fullBtn = html('button', { type: 'button', class: 'play-full' }, '⛶ Full screen');
+      this.fullBtn = html('button', { type: 'button', class: 'play-full' });
+      this.setFullLabel('⛶', 'Full screen');
       controls.append(this.restartBtn, this.prevBtn, this.playBtn, this.nextBtn, this.fullBtn);
       container.appendChild(controls);
 
@@ -302,17 +303,23 @@
       this.isFull = true;
       this.container.classList.add('fullscreen');
       document.body.style.overflow = 'hidden';
-      this.fullBtn.textContent = '✕ Close';
+      this.setFullLabel('✕', 'Close');
       if (this.container.requestFullscreen) this.container.requestFullscreen().catch(() => {});
       this.jumpTo(0);
       this.start();
+    }
+
+    // The label text is hidden on narrow screens, leaving just the icon.
+    setFullLabel(icon, label) {
+      this.fullBtn.replaceChildren(icon, html('span', { class: 'label' }, ` ${label}`));
+      this.fullBtn.setAttribute('aria-label', label);
     }
 
     closeFull() {
       this.isFull = false;
       this.container.classList.remove('fullscreen');
       document.body.style.overflow = '';
-      this.fullBtn.textContent = '⛶ Full screen';
+      this.setFullLabel('⛶', 'Full screen');
       if (document.fullscreenElement === this.container) document.exitFullscreen().catch(() => {});
     }
 
