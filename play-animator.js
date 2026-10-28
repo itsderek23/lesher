@@ -8,6 +8,13 @@
   const LEAD_MS = 900;
   const PLAYER_R = 16;
   const BALL_OFFSET = [13, -13];
+  const SCREEN_ANGLES = { right: 0, down: 90, left: 180, up: -90 };
+  // Baseline plays show the frontcourt below the baseline; sideline plays show it down to half court,
+  // with the out of bounds area along the right sideline.
+  const COURTS = {
+    baseline: { viewBox: '-20 -80 540 420', depth: 340 },
+    sideline: { viewBox: '-20 -30 610 520', depth: 470 },
+  };
 
   function el(name, attrs, parent) {
     const node = document.createElementNS(SVG_NS, name);
@@ -24,6 +31,15 @@
   }
 
   // Smooth curve through the points (quadratic segments through midpoints).
+  // Eased progress (0-1) of an action at a point in its step. Actions can run over part of the
+  // step (start/end are fractions) to stagger movement.
+  function actionProgress(a, stepP) {
+    const startAt = a.start || 0;
+    const endAt = a.end || 1;
+    const p = Math.min(1, Math.max(0, (stepP - startAt) / (endAt - startAt)));
+    return { p, eased: p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2 };
+  }
+
   function smoothPath(points) {
     let d = `M${points[0][0]} ${points[0][1]}`;
     if (points.length === 2) return d + ` L${points[1][0]} ${points[1][1]}`;
@@ -37,10 +53,10 @@
     return d;
   }
 
-  function drawCourt(svg) {
+  function drawCourt(svg, view) {
+    const { depth } = COURTS[view];
     const g = el('g', { class: 'court' }, svg);
-    el('rect', { x: -40, y: -80, width: 580, height: 80, class: 'oob' }, g);
-    el('rect', { x: 0, y: 0, width: 500, height: 340, class: 'floor' }, g);
+    el('rect', { x: 0, y: 0, width: 500, height: depth, class: 'floor' }, g);
     el('rect', { x: 170, y: 0, width: 160, height: 190, class: 'paint' }, g);
     // Free throw circle: solid away from the hoop, dashed inside the lane.
     el('path', { d: 'M190 190 A60 60 0 0 0 310 190', class: 'line' }, g);
@@ -58,15 +74,20 @@
     el('line', { x1: 250, y1: 40, x2: 250, y2: 43.5, class: 'rim' }, g);
     el('circle', { cx: 250, cy: 52.5, r: 9, class: 'rim' }, g);
     // Court boundary.
-    el('path', { d: 'M0 340 L0 0 L500 0 L500 340', class: 'line boundary' }, g);
-    el('text', { x: 250, y: -52, class: 'court-label' }, g).textContent = 'OUT OF BOUNDS';
+    el('path', { d: `M0 ${depth} L0 0 L500 0 L500 ${depth}`, class: 'line boundary' }, g);
+    if (view === 'sideline') {
+      el('line', { x1: 0, y1: depth, x2: 500, y2: depth, class: 'line boundary' }, g);
+      el('path', { d: `M190 ${depth} A60 60 0 0 1 310 ${depth}`, class: 'line' }, g);
+      el('text', { x: 562, y: 140, class: 'court-label', transform: 'rotate(90 562 140)' }, g).textContent = 'OUT OF BOUNDS';
+    } else {
+      el('text', { x: 250, y: -52, class: 'court-label' }, g).textContent = 'OUT OF BOUNDS';
+    }
   }
 
   class PlayAnimator {
     constructor(container, play) {
       this.play = play;
       this.t = 0;
-      this.speed = 1;
       this.playing = false;
       this.stopAt = null;
       this.lastFrame = null;
@@ -78,18 +99,20 @@
 
     buildDom(container) {
       const play = this.play;
+      this.container = container;
       container.classList.add('play-card');
       container.appendChild(html('h2', {}, play.name));
       container.appendChild(html('p', { class: 'play-meta' }, `${play.type} · ${play.set}`));
       if (play.description) container.appendChild(html('p', { class: 'play-desc' }, play.description));
 
+      const view = play.court || 'baseline';
       this.svg = el('svg', {
-        viewBox: '-20 -80 540 420',
+        viewBox: COURTS[view].viewBox,
         role: 'img',
         'aria-label': `${play.name} play diagram`,
       });
       container.appendChild(this.svg);
-      drawCourt(this.svg);
+      drawCourt(this.svg, view);
       this.trailLayer = el('g', { class: 'trails' }, this.svg);
       this.playerLayer = el('g', { class: 'players' }, this.svg);
 
@@ -101,13 +124,8 @@
       this.prevBtn = html('button', { type: 'button', title: 'Previous step' }, '◀︎ Step');
       this.playBtn = html('button', { type: 'button', class: 'primary' }, '▶︎ Play');
       this.nextBtn = html('button', { type: 'button', title: 'Next step' }, 'Step ▶︎');
-      this.speedSel = html('select', { 'aria-label': 'Speed' });
-      for (const s of [0.5, 1, 1.5]) {
-        const opt = html('option', { value: s }, `${s}×`);
-        if (s === 1) opt.selected = true;
-        this.speedSel.appendChild(opt);
-      }
-      controls.append(this.restartBtn, this.prevBtn, this.playBtn, this.nextBtn, this.speedSel);
+      this.fullBtn = html('button', { type: 'button', class: 'play-full' }, '⛶ Full screen');
+      controls.append(this.restartBtn, this.prevBtn, this.playBtn, this.nextBtn, this.fullBtn);
       container.appendChild(controls);
 
       this.scrub = html('input', { type: 'range', min: 0, max: 1000, value: 0, class: 'play-scrub', 'aria-label': 'Timeline' });
@@ -123,13 +141,22 @@
       });
       container.appendChild(this.stepList);
 
-      if (play.legend) container.appendChild(html('p', { class: 'play-legend' }, play.legend));
-
       this.restartBtn.addEventListener('click', () => this.jumpTo(0));
+      this.fullBtn.addEventListener('click', () => (this.isFull ? this.closeFull() : this.openFull()));
+      this.svg.addEventListener('click', () => {
+        if (!this.isFull) this.openFull();
+        else if (this.playing) this.pause();
+        else this.start();
+      });
+      document.addEventListener('fullscreenchange', () => {
+        if (this.isFull && document.fullscreenElement !== this.container) this.closeFull();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.isFull) this.closeFull();
+      });
       this.playBtn.addEventListener('click', () => (this.playing ? this.pause() : this.start()));
       this.nextBtn.addEventListener('click', () => this.nextStep());
       this.prevBtn.addEventListener('click', () => this.prevStep());
-      this.speedSel.addEventListener('change', () => (this.speed = parseFloat(this.speedSel.value)));
       this.scrub.addEventListener('input', () => this.jumpTo((this.scrub.value / 1000) * this.duration));
     }
 
@@ -160,35 +187,50 @@
           const before = path.getPointAtLength(Math.max(0, length - 6));
           const angle = (Math.atan2(end.y - before.y, end.x - before.x) * 180) / Math.PI;
           const head = el('g', { class: `trail-end ${a.type}`, transform: `translate(${end.x} ${end.y}) rotate(${angle})` }, group);
+          // Drawn just past the player's circle so it isn't hidden underneath.
+          const tip = PLAYER_R + 6;
           if (a.type === 'screen') {
-            el('line', { x1: 0, y1: -14, x2: 0, y2: 14 }, head);
+            el('line', { x1: tip, y1: -14, x2: tip, y2: 14 }, head);
           } else {
-            el('path', { d: 'M0 0 L-13 -7 L-13 7 Z' }, head);
+            el('path', { d: `M${tip + 4} 0 L${tip - 9} -7 L${tip - 9} 7 Z` }, head);
           }
           pos[a.player] = points[points.length - 1];
           return { ...a, path, length, head };
         });
-        return { ...step, group, actions };
+        return { ...step, duration: step.duration || MOVE_MS, group, actions };
       });
 
+      let t = LEAD_MS;
+      this.starts = this.steps.map((step) => {
+        const start = t;
+        t += step.duration + HOLD_MS;
+        return start;
+      });
+      this.duration = t;
+
       this.playerNodes = {};
+      this.startScreens = {};
       for (const [id, p] of Object.entries(play.players)) {
         const g = el('g', { class: 'player' }, this.playerLayer);
+        // A player can start in a screen, with the bar on the given side (right, left, up, down).
+        if (p.screen) {
+          const bar = el('g', { class: 'trail-end', transform: `rotate(${SCREEN_ANGLES[p.screen]})` }, g);
+          el('line', { x1: PLAYER_R + 6, y1: -14, x2: PLAYER_R + 6, y2: 14 }, bar);
+          this.startScreens[id] = bar;
+        }
         el('circle', { r: PLAYER_R }, g);
         el('text', { y: 1 }, g).textContent = p.label || id;
         this.playerNodes[id] = g;
       }
       this.ballNode = el('circle', { r: 7, class: 'ball' }, this.playerLayer);
-
-      this.duration = LEAD_MS + this.steps.length * (MOVE_MS + HOLD_MS);
     }
 
     stepStart(i) {
-      return LEAD_MS + i * (MOVE_MS + HOLD_MS);
+      return this.starts[i];
     }
 
     endOfMove(i) {
-      return this.stepStart(i) + MOVE_MS;
+      return this.starts[i] + this.steps[i].duration;
     }
 
     render() {
@@ -200,16 +242,19 @@
 
       this.steps.forEach((step, i) => {
         const local = t - this.stepStart(i);
-        const p = Math.min(1, Math.max(0, local / MOVE_MS));
-        const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+        const stepP = local / step.duration;
         step.group.style.display = local > 0 ? '' : 'none';
         if (local < 0) return;
         current = i;
 
         for (const a of step.actions) {
+          const { p, eased } = actionProgress(a, stepP);
+
           if (a.type === 'pass') {
-            const from = pos[a.from];
-            const to = pos[a.to];
+            // Passer and receiver may be moving in this step: use where they are when the ball
+            // leaves and arrives, so the pass line stays put after the catch.
+            const from = this.positionInStep(step, a.from, Math.min(stepP, a.start || 0), pos);
+            const to = this.positionInStep(step, a.to, Math.min(stepP, a.end || 1), pos);
             const sx = from[0] + BALL_OFFSET[0], sy = from[1] + BALL_OFFSET[1];
             const ex = to[0] + BALL_OFFSET[0], ey = to[1] + BALL_OFFSET[1];
             const bx = sx + (ex - sx) * eased, by = sy + (ey - sy) * eased;
@@ -233,6 +278,11 @@
       for (const [id, node] of Object.entries(this.playerNodes)) {
         node.setAttribute('transform', `translate(${pos[id][0]} ${pos[id][1]})`);
       }
+      // A starting screen goes away once that player moves.
+      for (const [id, bar] of Object.entries(this.startScreens)) {
+        const [sx, sy] = this.startPositions[id];
+        bar.style.display = pos[id][0] === sx && pos[id][1] === sy ? '' : 'none';
+      }
       if (!ballAt) {
         const h = pos[holder];
         ballAt = [h[0] + BALL_OFFSET[0], h[1] + BALL_OFFSET[1]];
@@ -246,9 +296,36 @@
       this.playBtn.textContent = this.playing ? '❚❚ Pause' : '▶︎ Play';
     }
 
+    // Full screen uses the browser's fullscreen when available (not on iPhone), and otherwise
+    // the card covers the page.
+    openFull() {
+      this.isFull = true;
+      this.container.classList.add('fullscreen');
+      document.body.style.overflow = 'hidden';
+      this.fullBtn.textContent = '✕ Close';
+      if (this.container.requestFullscreen) this.container.requestFullscreen().catch(() => {});
+      this.jumpTo(0);
+      this.start();
+    }
+
+    closeFull() {
+      this.isFull = false;
+      this.container.classList.remove('fullscreen');
+      document.body.style.overflow = '';
+      this.fullBtn.textContent = '⛶ Full screen';
+      if (document.fullscreenElement === this.container) document.exitFullscreen().catch(() => {});
+    }
+
+    positionInStep(step, id, stepP, pos) {
+      const move = step.actions.find((m) => m.path && String(m.player) === String(id));
+      if (!move) return pos[id];
+      const pt = move.path.getPointAtLength(actionProgress(move, stepP).eased * move.length);
+      return [pt.x, pt.y];
+    }
+
     tick(now) {
       if (!this.playing) return;
-      if (this.lastFrame !== null) this.t += (now - this.lastFrame) * this.speed;
+      if (this.lastFrame !== null) this.t += now - this.lastFrame;
       this.lastFrame = now;
       const limit = this.stopAt !== null ? this.stopAt : this.duration;
       if (this.t >= limit) {
