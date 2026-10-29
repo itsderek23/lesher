@@ -132,16 +132,6 @@
       this.scrub = html('input', { type: 'range', min: 0, max: 1000, value: 0, class: 'play-scrub', 'aria-label': 'Timeline' });
       container.appendChild(this.scrub);
 
-      this.stepList = html('ol', { class: 'play-steps' });
-      const items = [{ caption: play.setup }].concat(play.steps);
-      this.stepItems = items.map((step, i) => {
-        const li = html('li', i === 1 ? { value: 1 } : {}, step.caption);
-        li.addEventListener('click', () => this.jumpTo(i === 0 ? 0 : this.endOfMove(i - 1)));
-        this.stepList.appendChild(li);
-        return li;
-      });
-      container.appendChild(this.stepList);
-
       this.restartBtn.addEventListener('click', () => this.jumpTo(0));
       this.fullBtn.addEventListener('click', () => (this.isFull ? this.closeFull() : this.openFull()));
       this.svg.addEventListener('click', () => {
@@ -292,7 +282,6 @@
       this.ballNode.setAttribute('cy', ballAt[1]);
 
       this.caption.textContent = current < 0 ? this.play.setup : this.steps[current].caption;
-      this.stepItems.forEach((li, i) => li.classList.toggle('active', i === current + 1));
       this.scrub.value = Math.round((t / this.duration) * 1000);
       this.playBtn.textContent = this.playing ? '❚❚ Pause' : '▶︎ Play';
     }
