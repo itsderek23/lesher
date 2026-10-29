@@ -187,8 +187,12 @@
       this.startPositions = { ...pos };
       this.startHolder = holder;
 
+      // A move with fills: <player> takes that player's spot. While the spot is empty it pulses,
+      // like the tail lights of the player who left it.
+      const spotLayer = el('g', { class: 'spots' }, this.trailLayer);
       this.steps = play.steps.map((step) => {
         const group = el('g', { class: 'step-trail' }, this.trailLayer);
+        const stepStartPos = { ...pos };
         const actions = step.actions.map((a) => {
           // A pass is one dashed line; a handoff is drawn as a double line.
           if (a.type === 'pass' || a.type === 'handoff') {
@@ -215,8 +219,12 @@
             el('path', { d: `M${tip + 4} 0 L${tip - 9} -7 L${tip - 9} 7 Z` }, head);
           }
           pos[a.player] = points[points.length - 1];
-          return { ...a, path, length, head };
+          const spot = a.fills && el('circle', { cx: stepStartPos[a.fills][0], cy: stepStartPos[a.fills][1], r: PLAYER_R + 4, class: 'vacated' }, spotLayer);
+          return { ...a, path, length, head, spot };
         });
+        for (const a of actions) {
+          if (a.spot) a.vacater = actions.find((m) => m.path && String(m.player) === String(a.fills));
+        }
         return { ...step, duration: step.duration || MOVE_MS, group, actions };
       });
 
@@ -284,6 +292,11 @@
         const local = t - this.stepStart(i);
         const stepP = local / step.duration;
         step.group.style.display = local > 0 ? '' : 'none';
+        for (const a of step.actions) {
+          if (!a.spot) continue;
+          const left = local > 0 && (!a.vacater || actionProgress(a.vacater, stepP).p > 0);
+          a.spot.style.display = left && actionProgress(a, stepP).p < 1 ? '' : 'none';
+        }
         if (local < 0) return;
         current = i;
 
