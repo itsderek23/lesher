@@ -92,6 +92,9 @@
     }
   }
 
+  // The card you last clicked or tapped is selected; the space bar plays and pauses it.
+  let selected = null;
+
   class PlayAnimator {
     // A play can have variants (e.g. against man or zone), shown as tabs. Each variant has its own
     // setup and steps, and can override the play's players and ball.
@@ -168,7 +171,17 @@
       });
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && this.isFull) this.closeFull();
+        if (e.key === ' ' && selected === this && this.steps.length && !e.target.matches('input[type=text], textarea')) {
+          e.preventDefault();
+          if (this.playing) this.pause();
+          else this.start();
+        }
       });
+      // A focused button would also click on space when the key comes up, so stop that.
+      document.addEventListener('keyup', (e) => {
+        if (e.key === ' ' && selected === this && e.target.matches('button')) e.preventDefault();
+      });
+      container.addEventListener('pointerdown', () => this.select());
       this.playBtn.addEventListener('click', () => (this.playing ? this.pause() : this.start()));
       this.nextBtn.addEventListener('click', () => this.nextStep());
       this.prevBtn.addEventListener('click', () => this.prevStep());
@@ -372,7 +385,14 @@
 
     // Full screen uses the browser's fullscreen when available (not on iPhone), and otherwise
     // the card covers the page.
+    select() {
+      if (selected) selected.container.classList.remove('selected');
+      selected = this;
+      this.container.classList.add('selected');
+    }
+
     openFull() {
+      this.select();
       this.isFull = true;
       this.container.classList.add('fullscreen');
       document.body.style.overflow = 'hidden';
