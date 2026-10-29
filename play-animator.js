@@ -1,4 +1,4 @@
-// Animated half-court play diagrams.
+// Animated play diagrams.
 // Court units are tenths of a foot: baseline at y=0, hoop at (250, 52.5), lane is x 170-330.
 // Out of bounds (baseline side) is y < 0.
 (function () {
@@ -10,10 +10,12 @@
   const BALL_OFFSET = [13, -13];
   const SCREEN_ANGLES = { right: 0, down: 90, left: 180, up: -90 };
   // Baseline plays show the frontcourt below the baseline; sideline plays show it down to half court,
-  // with the out of bounds area along the right sideline.
+  // with the out of bounds area along the right sideline. Press plays show the backcourt (inbounding
+  // under the opponent's basket) and past half court.
   const COURTS = {
     baseline: { viewBox: '-20 -80 540 420', depth: 340 },
     sideline: { viewBox: '-20 -30 610 520', depth: 470 },
+    press: { viewBox: '-20 -80 540 670', depth: 580 },
   };
 
   function el(name, attrs, parent) {
@@ -30,7 +32,6 @@
     return node;
   }
 
-  // Smooth curve through the points (quadratic segments through midpoints).
   // Eased progress (0-1) of an action at a point in its step. Actions can run over part of the
   // step (start/end are fractions) to stagger movement.
   function actionProgress(a, stepP) {
@@ -40,6 +41,7 @@
     return { p, eased: p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2 };
   }
 
+  // Smooth curve through the points (quadratic segments through midpoints).
   function smoothPath(points) {
     let d = `M${points[0][0]} ${points[0][1]}`;
     if (points.length === 2) return d + ` L${points[1][0]} ${points[1][1]}`;
@@ -82,11 +84,19 @@
     } else {
       el('text', { x: 250, y: -52, class: 'court-label' }, g).textContent = 'OUT OF BOUNDS';
     }
+    if (view === 'press') {
+      el('line', { x1: 0, y1: 470, x2: 500, y2: 470, class: 'line boundary' }, g);
+      el('circle', { cx: 250, cy: 470, r: 60, class: 'line' }, g);
+    }
   }
 
   class PlayAnimator {
+    // A play can have variants (e.g. against man or zone), shown as tabs. Each variant has its own
+    // setup and steps, and can override the play's players and ball.
     constructor(container, play) {
       this.play = play;
+      this.variants = play.variants || [play];
+      this.active = { ...play, ...this.variants[0] };
       this.t = 0;
       this.playing = false;
       this.stopAt = null;
@@ -104,6 +114,18 @@
       container.appendChild(html('h2', {}, play.name));
       container.appendChild(html('p', { class: 'play-meta' }, `${play.type} · ${play.set}`));
       if (play.description) container.appendChild(html('p', { class: 'play-desc' }, play.description));
+
+      if (this.variants.length > 1) {
+        const tabs = html('div', { class: 'play-variants', role: 'tablist' });
+        this.variantTabs = this.variants.map((v, i) => {
+          const tab = html('button', { type: 'button', role: 'tab' }, v.name);
+          tab.addEventListener('click', () => this.selectVariant(i));
+          tabs.appendChild(tab);
+          return tab;
+        });
+        this.variantTabs[0].classList.add('active');
+        container.appendChild(tabs);
+      }
 
       const view = play.court || 'baseline';
       this.svg = el('svg', {
@@ -153,7 +175,9 @@
 
     // Build paths for every move up front so any moment in the play can be rendered directly.
     buildTimeline() {
-      const play = this.play;
+      const play = this.active;
+      this.trailLayer.replaceChildren();
+      this.playerLayer.replaceChildren();
       const pos = {};
       for (const [id, p] of Object.entries(play.players)) pos[id] = [p.x, p.y];
       let holder = play.ball;
@@ -214,6 +238,13 @@
         this.playerNodes[id] = g;
       }
       this.ballNode = el('circle', { r: 7, class: 'ball' }, this.playerLayer);
+    }
+
+    selectVariant(i) {
+      this.active = { ...this.play, ...this.variants[i] };
+      this.variantTabs.forEach((tab, j) => tab.classList.toggle('active', i === j));
+      this.buildTimeline();
+      this.jumpTo(0);
     }
 
     stepStart(i) {
@@ -281,7 +312,7 @@
       this.ballNode.setAttribute('cx', ballAt[0]);
       this.ballNode.setAttribute('cy', ballAt[1]);
 
-      this.caption.textContent = current < 0 ? this.play.setup : this.steps[current].caption;
+      this.caption.textContent = current < 0 ? this.active.setup : this.steps[current].caption;
       this.scrub.value = Math.round((t / this.duration) * 1000);
       this.playBtn.textContent = this.playing ? '❚❚ Pause' : '▶︎ Play';
     }
