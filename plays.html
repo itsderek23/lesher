@@ -9,13 +9,15 @@
   <style>
     html { scroll-behavior: smooth; }
     main h2, .play-card { scroll-margin-top: 1rem; }
-    .toc { border: 1px solid #eee; border-radius: .75rem; padding: .75rem 1rem; margin: 0 0 2rem; }
-    .toc ul { list-style: none; padding: 0; margin: 0; line-height: 2; }
-    .toc li { display: flex; flex-wrap: wrap; gap: 0 .75rem; }
-    .toc li > a:first-child { font-weight: 600; min-width: 12rem; }
+    .toc { columns: 2; column-gap: 2rem; margin: 0 0 2rem; }
+    .toc section { break-inside: avoid; margin-bottom: 1rem; }
+    .toc h3 { margin: 0; padding-bottom: .3rem; border-bottom: 2px solid #e60000; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+    .toc a { color: #002147; text-decoration: none; }
+    .toc ul { list-style: none; padding: 0; margin: 0; }
+    .toc li a { display: flex; justify-content: space-between; padding: .55rem .25rem; border-bottom: 1px solid #e6e8ec; font-weight: 500; }
+    .toc li a::after { content: "›"; color: #6b7280; font-size: 1.2rem; line-height: 1; }
     @media (max-width: 600px) {
-      .toc li { margin-bottom: .4rem; }
-      .toc li > a:first-child { min-width: 100%; }
+      .toc { columns: 1; }
     }
     .unlock { max-width: 420px; margin: 0 0 2rem; }
     .unlock label { display: block; margin-bottom: .5rem; }
@@ -53,6 +55,7 @@
     .play-card.fullscreen .play-desc { display: none; }
     .play-card.fullscreen .play-caption { min-height: 2.4em; font-size: 1.15rem; }
     .play-full { margin-left: auto; }
+    .play-card.static .play-controls > :not(.play-full), .play-card.static .play-scrub { display: none; }
     .play-variants { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .75rem; }
     .play-variants button {
       font: inherit; font-size: .9rem; padding: .3rem .8rem; border: 1px solid #ccc; border-radius: 999px;
@@ -82,6 +85,12 @@
     .player circle { fill: #002147; stroke: #fff; stroke-width: 3; }
     .player text { fill: #fff; font: 700 15px system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
     .ball { fill: #f08a24; stroke: #7a3d06; stroke-width: 2; }
+    .trail.shift, .trail-end.shift { display: none; }
+    .player.defense circle { fill: #fff; stroke: #e60000; stroke-width: 3; }
+    .player.defense text { fill: #e60000; }
+    .player.defense .call { font-size: 13px; letter-spacing: .5px; fill: #002147; paint-order: stroke; stroke: #f6ead7; stroke-width: 4px; }
+    .low-star { fill: #f2b705; stroke: #a87d00; stroke-width: 1.5; }
+    .guard { stroke: #e60000; stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .7; }
 
     .play-caption { min-height: 3.2em; margin: .75rem 0 .5rem; font-weight: 600; }
     .play-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
@@ -92,6 +101,8 @@
     .play-scrub { width: 100%; margin: .75rem 0 0; accent-color: #002147; }
     .position-key { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding: 0; margin: 0 0 2rem; list-style: none; }
     .position-key[hidden] { display: none; }
+    .position-key b.defender { background: #fff; color: #e60000; border: 3px solid #e60000; box-sizing: border-box; }
+    .position-key b.star { background: none; color: #f2b705; font-size: 1.6rem; }
     .position-key li { display: flex; align-items: center; gap: .5rem; }
     .position-key b { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: #002147; color: #fff; font-size: .8rem; }
     @media (max-width: 480px) {
@@ -131,9 +142,11 @@
         <li><b>PG</b> Point guard</li>
         <li><b>H</b> Horn</li>
         <li><b>C</b> Corner</li>
+        <li><b class="defender">X</b> Defender</li>
+        <li><b class="star">★</b> Low man helper</li>
       </ul>
 
-      <nav class="toc" aria-label="Playbook" hidden><ul></ul></nav>
+      <nav class="toc" aria-label="Playbook" hidden></nav>
 
       <form class="unlock" hidden>
         <label for="team-password">Enter the team password to see the playbook.</label>
@@ -162,25 +175,27 @@
     });
 
     function buildToc() {
-      // Table of contents: one row per section heading, linking to the plays in that section.
-      const toc = document.querySelector('.toc ul');
+      // Table of contents: a heading per section, then one row per play in that section.
+      const toc = document.querySelector('.toc');
       for (const heading of document.querySelectorAll('#plays > h2')) {
-        const row = document.createElement('li');
-        const sectionLink = document.createElement('a');
+        const section = document.createElement('section');
+        const title = section.appendChild(document.createElement('h3'));
+        const sectionLink = title.appendChild(document.createElement('a'));
         sectionLink.href = `#${heading.id}`;
         sectionLink.textContent = heading.textContent;
-        row.appendChild(sectionLink);
+        const list = section.appendChild(document.createElement('ul'));
         for (const card of heading.nextElementSibling.querySelectorAll('.play-card')) {
-          // Skip a play named the same as its section (e.g. Press Break); the section link covers it.
-          if (card.querySelector('h2').textContent === heading.textContent) continue;
-          const link = document.createElement('a');
+          // A play named the same as its section (e.g. Press Break) is listed by its tab names instead.
+          let name = card.querySelector('h2').textContent;
+          const tabs = [...card.querySelectorAll('.play-variants button')].map((b) => b.textContent);
+          if (name === heading.textContent && tabs.length) name = tabs.join(' / ');
+          const link = list.appendChild(document.createElement('li')).appendChild(document.createElement('a'));
           link.href = `#${card.id}`;
-          link.textContent = card.querySelector('h2').textContent;
-          row.appendChild(link);
+          link.textContent = name;
         }
-        toc.appendChild(row);
+        toc.appendChild(section);
       }
-      toc.parentElement.hidden = false;
+      toc.hidden = false;
     }
 
     const backToTop = document.querySelector('.back-to-top');

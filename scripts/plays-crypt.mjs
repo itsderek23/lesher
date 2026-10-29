@@ -7,7 +7,7 @@
 // plays.private.html is an HTML fragment: the play sections, then one <script> that creates the
 // PlayAnimators. The browser inserts the HTML and then runs the script.
 import { pbkdf2Sync, randomBytes, createCipheriv, createDecipheriv } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -26,13 +26,26 @@ function deriveKey(salt, iterations = ITERATIONS) {
   return pbkdf2Sync(password, salt, iterations, 32, 'sha256');
 }
 
+function readEncrypted() {
+  const text = readFileSync(OUTPUT, 'utf8');
+  return JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+}
+
+function existingSalt() {
+  if (!existsSync(OUTPUT)) return null;
+  const encrypted = readEncrypted();
+  return encrypted.iterations === ITERATIONS ? Buffer.from(encrypted.salt, 'base64') : null;
+}
+
 function encrypt() {
   const source = readFileSync(SOURCE, 'utf8');
   const match = source.match(/^([\s\S]*?)<script>([\s\S]*)<\/script>\s*$/);
   if (!match) throw new Error('plays.private.html must end with a single <script> block.');
   const payload = JSON.stringify({ html: match[1].trim(), script: match[2] });
 
-  const salt = randomBytes(16);
+  // Keep the existing salt so the key browsers remembered still unlocks the new copy. The IV
+  // must be fresh on every encryption.
+  const salt = existingSalt() || randomBytes(16);
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', deriveKey(salt), iv);
   // Web Crypto's AES-GCM expects the auth tag appended to the ciphertext.
@@ -49,8 +62,7 @@ function encrypt() {
 }
 
 function decrypt() {
-  const text = readFileSync(OUTPUT, 'utf8');
-  const encrypted = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+  const encrypted = readEncrypted();
   const data = Buffer.from(encrypted.data, 'base64');
   const decipher = createDecipheriv('aes-256-gcm', deriveKey(Buffer.from(encrypted.salt, 'base64'), encrypted.iterations), Buffer.from(encrypted.iv, 'base64'));
   decipher.setAuthTag(data.subarray(data.length - 16));

@@ -9,6 +9,7 @@
   const PLAYER_R = 16;
   const BALL_OFFSET = [13, -13];
   const SCREEN_ANGLES = { right: 0, down: 90, left: 180, up: -90 };
+  const STAR = 'M0.0 -30.0 L7.6 -10.5 L28.5 -9.3 L12.4 4.0 L17.6 24.3 L0.0 13.0 L-17.6 24.3 L-12.4 4.0 L-28.5 -9.3 L-7.6 -10.5 Z';
   // Baseline plays show the frontcourt below the baseline; sideline plays show it down to half court,
   // with the out of bounds area along the right sideline. Press plays show the backcourt (inbounding
   // under the opponent's basket) and past half court. Half court sets have no out of bounds area.
@@ -229,8 +230,19 @@
 
       this.playerNodes = {};
       this.startScreens = {};
+      // Defenders (defense: true) are drawn as an X with a dashed line to the player they guard,
+      // their call (e.g. BALL, HELP, LOW) underneath, and a star when they're the low man.
+      this.guardLines = {};
+      this.calls = {};
+      this.stars = {};
+      const guardLayer = el('g', { class: 'guards' }, this.playerLayer);
       for (const [id, p] of Object.entries(play.players)) {
-        const g = el('g', { class: 'player' }, this.playerLayer);
+        if (p.guards) this.guardLines[id] = el('line', { class: 'guard' }, guardLayer);
+        const g = el('g', { class: p.defense ? 'player defense' : 'player' }, this.playerLayer);
+        if (p.defense) {
+          this.stars[id] = el('path', { d: STAR, class: 'low-star' }, g);
+          this.calls[id] = el('text', { y: PLAYER_R + 15, class: 'call' }, g);
+        }
         // A player can start in a screen, with the bar on the given side (right, left, up, down).
         if (p.screen) {
           const bar = el('g', { class: 'trail-end', transform: `rotate(${SCREEN_ANGLES[p.screen]})` }, g);
@@ -238,10 +250,12 @@
           this.startScreens[id] = bar;
         }
         el('circle', { r: PLAYER_R }, g);
-        el('text', { y: 1 }, g).textContent = p.label || id;
+        el('text', { y: 1 }, g).textContent = p.label ?? id;
         this.playerNodes[id] = g;
       }
       this.ballNode = el('circle', { r: 7, class: 'ball' }, this.playerLayer);
+      // A formation with no steps is a still diagram, so the play controls are hidden.
+      this.container.classList.toggle('static', this.steps.length === 0);
     }
 
     selectVariant(i) {
@@ -311,6 +325,20 @@
 
       for (const [id, node] of Object.entries(this.playerNodes)) {
         node.setAttribute('transform', `translate(${pos[id][0]} ${pos[id][1]})`);
+      }
+      for (const [id, line] of Object.entries(this.guardLines)) {
+        const man = pos[this.active.players[id].guards];
+        line.setAttribute('x1', pos[id][0]);
+        line.setAttribute('y1', pos[id][1]);
+        line.setAttribute('x2', man[0]);
+        line.setAttribute('y2', man[1]);
+      }
+      // Calls come from the latest step that sets them, or the play's starting calls.
+      let calls = this.active.calls || {};
+      for (let i = 0; i <= current; i++) calls = this.steps[i].calls || calls;
+      for (const [id, text] of Object.entries(this.calls)) {
+        text.textContent = calls[id] || '';
+        this.stars[id].style.display = calls[id] === 'LOW' ? '' : 'none';
       }
       // A starting screen goes away once that player moves.
       for (const [id, bar] of Object.entries(this.startScreens)) {
