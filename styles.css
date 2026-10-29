@@ -112,3 +112,11 @@ a { color: #002147; }
   height: 24px;
   vertical-align:middle;
 }
+
+/* Roster */
+.roster { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.roster h3 { margin: 0 0 .5rem; }
+.roster ul { list-style: none; padding: 0; margin: 0; line-height: 1.9; }
+@media (max-width: 800px) {
+  .roster { grid-template-columns: repeat(2, 1fr); }
+}
