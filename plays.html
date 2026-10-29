@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Playbook - 🏀 Lesher Boys Basketball</title>
+  <meta name="description" content="Lesher Middle School Boys Basketball playbook" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    html { scroll-behavior: smooth; }
+    main h2, .play-card { scroll-margin-top: 1rem; }
+    .toc { border: 1px solid #eee; border-radius: .75rem; padding: .75rem 1rem; margin: 0 0 2rem; }
+    .toc ul { list-style: none; padding: 0; margin: 0; line-height: 2; }
+    .toc li { display: flex; flex-wrap: wrap; gap: 0 .75rem; }
+    .toc li > a:first-child { font-weight: 600; min-width: 12rem; }
+    @media (max-width: 600px) {
+      .toc li { margin-bottom: .4rem; }
+      .toc li > a:first-child { min-width: 100%; }
+    }
+    .unlock { max-width: 420px; margin: 0 0 2rem; }
+    .unlock label { display: block; margin-bottom: .5rem; }
+    .unlock-row { display: flex; gap: .5rem; }
+    .unlock input { flex: 1; min-width: 0; font: inherit; padding: .5rem .75rem; border: 1px solid #ccc; border-radius: .5rem; }
+    .unlock button { font: inherit; padding: .5rem 1rem; border: 0; border-radius: .5rem; background: #002147; color: #fff; cursor: pointer; }
+    .unlock-error { color: #e60000; margin: .5rem 0 0; }
+    .back-to-top {
+      position: fixed; right: 1rem; bottom: 1rem; z-index: 1000; padding: .5rem .9rem; border-radius: 999px;
+      background: #002147; color: #fff; text-decoration: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .back-to-top.show { opacity: 1; pointer-events: auto; }
+    .play-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; margin-bottom: 3rem; }
+    @media (max-width: 800px) { .play-grid { grid-template-columns: 1fr; } }
+    .play-card { min-width: 0; }
+    .play-card h2 { margin: 0; font-size: 1.25rem; }
+    /* Section headings read as dividers so they stand apart from play titles. */
+    #plays > h2 {
+      margin: 0 0 1.25rem; padding-bottom: .4rem; border-bottom: 3px solid #e60000;
+      font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: #002147;
+    }
+    .play-meta { margin: 0 0 .5rem; color: #666; font-size: .95rem; }
+    .play-desc { margin: 0 0 1rem; }
+    .play-card svg { display: block; width: 100%; height: auto; border-radius: .75rem; border: 1px solid #ddd; background: #eef1f5; }
+    .play-card:not(.fullscreen) svg { cursor: zoom-in; }
+
+    .play-card.fullscreen {
+      position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column;
+      padding: 1rem; background: #fff; overflow: auto;
+    }
+    .play-card.fullscreen > * { flex-shrink: 0; }
+    .play-card.fullscreen svg { flex: 1 1 auto; flex-shrink: 1; min-height: 0; height: 100%; border: 0; }
+    .play-card.fullscreen .play-meta,
+    .play-card.fullscreen .play-desc { display: none; }
+    .play-card.fullscreen .play-caption { min-height: 2.4em; font-size: 1.15rem; }
+    .play-full { margin-left: auto; }
+    .play-variants { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .75rem; }
+    .play-variants button {
+      font: inherit; font-size: .9rem; padding: .3rem .8rem; border: 1px solid #ccc; border-radius: 999px;
+      background: #fff; color: #444; cursor: pointer;
+    }
+    .play-variants button.active { background: #002147; border-color: #002147; color: #fff; }
+
+    .court .oob { fill: #eef1f5; }
+    .court .floor { fill: #f6ead7; }
+    .court .paint { fill: #e9d6b6; stroke: #333; stroke-width: 2.5; }
+    .court .line { fill: none; stroke: #333; stroke-width: 2.5; }
+    .court .dashed { stroke-dasharray: 8 7; }
+    .court .boundary { stroke-width: 4; }
+    .court .backboard { stroke: #333; stroke-width: 5; }
+    .court .rim { fill: none; stroke: #e60000; stroke-width: 3; }
+    .court-label { font: 600 16px system-ui, sans-serif; fill: #8a94a3; text-anchor: middle; letter-spacing: 2px; }
+
+    .trail { fill: none; stroke: #002147; stroke-width: 3.5; stroke-linecap: round; }
+    .trail.screen { stroke: #e60000; }
+    .trail.pass { stroke: #555; stroke-dasharray: 9 7; stroke-width: 3; }
+    .trail.handoff { stroke: #002147; stroke-dasharray: 6 4; stroke-width: 2.5; }
+    .trail-end path { fill: #002147; }
+    .trail-end line { stroke: #e60000; stroke-width: 5; stroke-linecap: round; }
+    .step-trail { transition: opacity .3s; }
+    .step-trail.past { opacity: .3; }
+
+    .player circle { fill: #002147; stroke: #fff; stroke-width: 3; }
+    .player text { fill: #fff; font: 700 15px system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
+    .ball { fill: #f08a24; stroke: #7a3d06; stroke-width: 2; }
+
+    .play-caption { min-height: 3.2em; margin: .75rem 0 .5rem; font-weight: 600; }
+    .play-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .play-controls button {
+      font: inherit; padding: .4rem .75rem; border: 1px solid #ccc; border-radius: .5rem; background: #fff; cursor: pointer;
+    }
+    .play-controls button.primary { background: #002147; border-color: #002147; color: #fff; min-width: 6.5rem; }
+    .play-scrub { width: 100%; margin: .75rem 0 0; accent-color: #002147; }
+    .position-key { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding: 0; margin: 0 0 2rem; list-style: none; }
+    .position-key[hidden] { display: none; }
+    .position-key li { display: flex; align-items: center; gap: .5rem; }
+    .position-key b { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: #002147; color: #fff; font-size: .8rem; }
+    @media (max-width: 480px) {
+      .play-controls { flex-wrap: nowrap; gap: .4rem; }
+      .play-controls button { padding: .4rem .6rem; }
+      .play-controls button.primary { min-width: 5.5rem; }
+      .play-full .label { display: none; }
+    }
+    @media (max-width: 360px) {
+      .play-controls button { padding: .35rem .45rem; font-size: .9rem; white-space: nowrap; }
+      .play-controls button.primary { min-width: 4.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <nav class="nav">
+      <div class="brand"><a href="index.html">🏀 Lesher Boys Basketball</a></div>
+      <button class="menu">☰</button>
+      <div class="links">
+        <a href="index.html">Home</a>
+        <a href="https://band.us/n/a0a8bak2ydDa9" target="_blank">
+          <img src="band_logo.png" class="band_logo">Band App
+        </a>
+        <a href="school-season.html">Season Info</a>
+        <a href="sunday_open_gyms.html">Open Gyms</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="wrap">
+      <h1 id="top">Playbook</h1>
+
+      <ul class="position-key" hidden>
+        <li><b>PG</b> Point guard</li>
+        <li><b>H</b> Horn</li>
+        <li><b>C</b> Corner</li>
+      </ul>
+
+      <nav class="toc" aria-label="Playbook" hidden><ul></ul></nav>
+
+      <form class="unlock" hidden>
+        <label for="team-password">Enter the team password to see the playbook.</label>
+        <div class="unlock-row">
+          <input id="team-password" type="password" autocomplete="current-password" required>
+          <button type="submit">Unlock</button>
+        </div>
+        <p class="unlock-error" hidden>Incorrect password.</p>
+      </form>
+
+      <div id="plays"></div>
+    </section>
+  </main>
+
+  <a href="#top" class="back-to-top">↑ Top</a>
+
+  <footer class="wrap foot">
+    Join our <img src="band_logo.png" class="band_logo"><a href="https://band.us/n/a0a8bak2ydDa9" target="_blank">Band App</a> for updates.
+  </footer>
+
+  <script src="play-animator.js"></script>
+  <script src="plays.enc.js"></script>
+  <script>
+    document.querySelector('.menu').addEventListener('click', () => {
+      document.body.classList.toggle('open');
+    });
+
+    function buildToc() {
+      // Table of contents: one row per section heading, linking to the plays in that section.
+      const toc = document.querySelector('.toc ul');
+      for (const heading of document.querySelectorAll('#plays > h2')) {
+        const row = document.createElement('li');
+        const sectionLink = document.createElement('a');
+        sectionLink.href = `#${heading.id}`;
+        sectionLink.textContent = heading.textContent;
+        row.appendChild(sectionLink);
+        for (const card of heading.nextElementSibling.querySelectorAll('.play-card')) {
+          // Skip a play named the same as its section (e.g. Press Break); the section link covers it.
+          if (card.querySelector('h2').textContent === heading.textContent) continue;
+          const link = document.createElement('a');
+          link.href = `#${card.id}`;
+          link.textContent = card.querySelector('h2').textContent;
+          row.appendChild(link);
+        }
+        toc.appendChild(row);
+      }
+      toc.parentElement.hidden = false;
+    }
+
+    const backToTop = document.querySelector('.back-to-top');
+    const updateBackToTop = () => backToTop.classList.toggle('show', window.scrollY > 400);
+    window.addEventListener('scroll', updateBackToTop, { passive: true });
+    updateBackToTop();
+
+    // The plays are encrypted with the team password (see scripts/plays-crypt.mjs). The derived key
+    // is remembered on this device so players only enter the password once.
+    const KEY_STORAGE = 'lesher-plays-key';
+    const form = document.querySelector('.unlock');
+    const bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+
+    async function deriveKey(password) {
+      const { salt, iterations } = window.PLAYS_ENCRYPTED;
+      const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: bytes(salt), iterations, hash: 'SHA-256' },
+        material, { name: 'AES-GCM', length: 256 }, true, ['decrypt'],
+      );
+    }
+
+    async function unlock(key) {
+      const { iv, data } = window.PLAYS_ENCRYPTED;
+      const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes(iv) }, key, bytes(data));
+      const { html, script } = JSON.parse(new TextDecoder().decode(plain));
+      document.getElementById('plays').innerHTML = html;
+      new Function(script)();
+      buildToc();
+      document.querySelector('.position-key').hidden = false;
+    }
+
+    async function start() {
+      try {
+        const saved = localStorage.getItem(KEY_STORAGE);
+        if (saved) {
+          const key = await crypto.subtle.importKey('raw', bytes(saved), 'AES-GCM', true, ['decrypt']);
+          await unlock(key);
+          return;
+        }
+      } catch {
+        // Saved key is missing or no longer matches (e.g. the password changed); ask again.
+      }
+      form.hidden = false;
+      form.querySelector('input').focus();
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const button = form.querySelector('button');
+      button.disabled = true;
+      form.querySelector('.unlock-error').hidden = true;
+      try {
+        const key = await deriveKey(form.querySelector('input').value);
+        await unlock(key);
+        form.hidden = true;
+        try {
+          const raw = new Uint8Array(await crypto.subtle.exportKey('raw', key));
+          localStorage.setItem(KEY_STORAGE, btoa(String.fromCharCode(...raw)));
+        } catch {
+          // Can't remember the key (e.g. private browsing); they'll enter it next time.
+        }
+      } catch {
+        form.querySelector('.unlock-error').hidden = false;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    start();
+  </script>
+</body>
+</html>
