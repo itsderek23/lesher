@@ -11,8 +11,9 @@
   const SCREEN_ANGLES = { right: 0, down: 90, left: 180, up: -90 };
   // Baseline plays show the frontcourt below the baseline; sideline plays show it down to half court,
   // with the out of bounds area along the right sideline. Press plays show the backcourt (inbounding
-  // under the opponent's basket) and past half court.
+  // under the opponent's basket) and past half court. Half court sets have no out of bounds area.
   const COURTS = {
+    halfcourt: { viewBox: '-20 -20 540 390', depth: 350 },
     baseline: { viewBox: '-20 -80 540 420', depth: 340 },
     sideline: { viewBox: '-20 -30 610 520', depth: 470 },
     press: { viewBox: '-20 -80 540 670', depth: 580 },
@@ -81,7 +82,7 @@
       el('line', { x1: 0, y1: depth, x2: 500, y2: depth, class: 'line boundary' }, g);
       el('path', { d: `M190 ${depth} A60 60 0 0 1 310 ${depth}`, class: 'line' }, g);
       el('text', { x: 562, y: 140, class: 'court-label', transform: 'rotate(90 562 140)' }, g).textContent = 'OUT OF BOUNDS';
-    } else {
+    } else if (view !== 'halfcourt') {
       el('text', { x: 250, y: -52, class: 'court-label' }, g).textContent = 'OUT OF BOUNDS';
     }
     if (view === 'press') {
@@ -188,11 +189,14 @@
       this.steps = play.steps.map((step) => {
         const group = el('g', { class: 'step-trail' }, this.trailLayer);
         const actions = step.actions.map((a) => {
-          if (a.type === 'pass') {
-            const line = el('line', { class: 'trail pass' }, group);
-            const action = { ...a, line };
+          // A pass is one dashed line; a handoff is drawn as a double line.
+          if (a.type === 'pass' || a.type === 'handoff') {
+            const lines = (a.type === 'handoff' ? [-4, 4] : [0]).map((offset) => ({
+              offset,
+              node: el('line', { class: `trail ${a.type}` }, group),
+            }));
             holder = a.to;
-            return action;
+            return { ...a, lines };
           }
           const points = [pos[a.player]].concat(a.to);
           const path = el('path', { d: smoothPath(points), class: `trail ${a.type}` }, group);
@@ -272,26 +276,34 @@
         for (const a of step.actions) {
           const { p, eased } = actionProgress(a, stepP);
 
-          if (a.type === 'pass') {
+          if (a.lines) {
             // Passer and receiver may be moving in this step: use where they are when the ball
             // leaves and arrives, so the pass line stays put after the catch.
             const from = this.positionInStep(step, a.from, Math.min(stepP, a.start || 0), pos);
             const to = this.positionInStep(step, a.to, Math.min(stepP, a.end || 1), pos);
-            const sx = from[0] + BALL_OFFSET[0], sy = from[1] + BALL_OFFSET[1];
-            const ex = to[0] + BALL_OFFSET[0], ey = to[1] + BALL_OFFSET[1];
+            // Handoffs are short, so draw them center to center where they're easier to see.
+            const [ox, oy] = a.type === 'handoff' ? [0, 0] : BALL_OFFSET;
+            const sx = from[0] + ox, sy = from[1] + oy;
+            const ex = to[0] + ox, ey = to[1] + oy;
             const bx = sx + (ex - sx) * eased, by = sy + (ey - sy) * eased;
-            a.line.setAttribute('x1', sx);
-            a.line.setAttribute('y1', sy);
-            a.line.setAttribute('x2', bx);
-            a.line.setAttribute('y2', by);
+            const len = Math.hypot(ex - sx, ey - sy) || 1;
+            const nx = -(ey - sy) / len, ny = (ex - sx) / len;
+            for (const { offset, node } of a.lines) {
+              node.setAttribute('x1', sx + nx * offset);
+              node.setAttribute('y1', sy + ny * offset);
+              node.setAttribute('x2', bx + nx * offset);
+              node.setAttribute('y2', by + ny * offset);
+            }
             if (p >= 1) holder = a.to;
-            else if (p > 0) ballAt = [bx, by];
+            else if (p > 0) ballAt = [bx + BALL_OFFSET[0] - ox, by + BALL_OFFSET[1] - oy];
             continue;
           }
-          const pt = a.path.getPointAtLength(eased * a.length);
-          pos[a.player] = [pt.x, pt.y];
           a.path.setAttribute('stroke-dashoffset', a.length * (1 - eased));
           a.head.style.display = p >= 1 ? '' : 'none';
+          // A move that hasn't started leaves the player where an earlier move in this step put them.
+          if (p === 0) continue;
+          const pt = a.path.getPointAtLength(eased * a.length);
+          pos[a.player] = [pt.x, pt.y];
         }
       });
 
