@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shooting Stats - 🏀 Lesher Boys Basketball</title>
+  <meta name="description" content="Lesher Middle School Boys Basketball practice shooting stats" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .unlock { max-width: 420px; margin: 0 0 2rem; }
+    .unlock label { display: block; margin-bottom: .5rem; }
+    .unlock-row { display: flex; gap: .5rem; }
+    .unlock input { flex: 1; min-width: 0; font: inherit; padding: .5rem .75rem; border: 1px solid #ccc; border-radius: .5rem; }
+    .unlock button { font: inherit; padding: .5rem 1rem; border: 0; border-radius: .5rem; background: #002147; color: #fff; cursor: pointer; }
+    .unlock-error { color: #e60000; margin: .5rem 0 0; }
+
+    .stats-intro { margin: 0 0 1rem; color: #444; }
+    .stats-days { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1.5rem; }
+    .stats-days button {
+      font: inherit; font-size: .9rem; padding: .3rem .8rem; border: 1px solid #ccc; border-radius: 999px;
+      background: #fff; color: #444; cursor: pointer;
+    }
+    .stats-days button.active { background: #002147; border-color: #002147; color: #fff; }
+
+    .stats-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 0 0 2rem; }
+    .stats-summary div { padding: .75rem 1rem; border: 1px solid #e6e8ec; border-radius: .75rem; }
+    .stats-summary b { display: block; font-size: 1.6rem; color: #002147; line-height: 1.2; }
+    .stats-summary span { color: #666; font-size: .9rem; }
+
+    #stats h2 {
+      margin: 0 0 .75rem; padding-bottom: .4rem; border-bottom: 3px solid #e60000;
+      font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: #002147;
+    }
+    .stats-table-wrap { overflow-x: auto; margin: 0 0 2.5rem; }
+    /* Fixed column widths so the Varsity and JV tables line up. */
+    .stats-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+    .stats-table th, .stats-table td { padding: .5rem .6rem; border-bottom: 1px solid #e6e8ec; text-align: right; white-space: nowrap; }
+    .stats-table th:first-child, .stats-table td:first-child { text-align: left; white-space: normal; }
+    .stats-table col.pos { width: 3.5rem; }
+    .stats-table col.ftPct { width: 8rem; }
+    .stats-table col.mikans { width: 6rem; }
+    .stats-table col.threes { width: 5rem; }
+    .stats-table th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #555; cursor: pointer; user-select: none; }
+    .stats-table th.sorted::after { content: " ▾"; }
+    .stats-table td.pos, .stats-table th.pos { text-align: center; }
+    .stats-table .pct { color: #666; font-size: .9rem; margin-left: .35rem; }
+    .stats-table .none { color: #bbb; }
+    .stats-table tfoot td { font-weight: 700; border-top: 2px solid #002147; border-bottom: 0; }
+    @media (max-width: 600px) {
+      .stats-summary { grid-template-columns: 1fr; gap: .5rem; }
+      .stats-table th, .stats-table td { padding: .45rem .35rem; }
+      .stats-table col.pos { width: 2.5rem; }
+      .stats-table col.ftPct { width: 6.5rem; }
+      .stats-table col.mikans { width: 4.25rem; }
+      .stats-table col.threes { width: 3.25rem; }
+      .stats-table th { font-size: .7rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <nav class="nav">
+      <div class="brand"><a href="index.html">🏀 Lesher Boys Basketball</a></div>
+      <button class="menu">☰</button>
+      <div class="links">
+        <a href="index.html">Home</a>
+        <a href="https://band.us/n/a0a8bak2ydDa9" target="_blank">
+          <img src="band_logo.png" class="band_logo">Band App
+        </a>
+        <a href="school-season.html">Season Info</a>
+        <a href="sunday_open_gyms.html">Open Gyms</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="wrap">
+      <h1>Shooting Stats</h1>
+
+      <form class="unlock" hidden>
+        <label for="team-password">Enter the team password to see the stats.</label>
+        <div class="unlock-row">
+          <input id="team-password" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+          <button type="submit">Unlock</button>
+        </div>
+        <p class="unlock-error" hidden>Incorrect password.</p>
+      </form>
+
+      <div id="stats"></div>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    Join our <img src="band_logo.png" class="band_logo"><a href="https://band.us/n/a0a8bak2ydDa9" target="_blank">Band App</a> for updates.
+  </footer>
+
+  <script src="unlock.js"></script>
+  <script src="stats.enc.js"></script>
+  <script>
+    document.querySelector('.menu').addEventListener('click', () => {
+      document.body.classList.toggle('open');
+    });
+
+    // Practice shooting stats. The roster and each practice's numbers live in stats.private.html
+    // (encrypted into stats.enc.js), whose script calls renderStats({ roster, practices }).
+    //   roster: { 'Name': { team: 'V' | 'JV', pos: 'G' | 'H' } }
+    //   practices: [{ date: 'YYYY-MM-DD', ftAttempts, stats: { 'Name': { ft, mikans, threes } } }]
+    // FTs are makes out of ftAttempts, Mikans are makes in the time limit, 3PTs are makes in 1 minute. A stat
+    // left out wasn't recorded for that player that day.
+    const TEAMS = [['V', 'Varsity'], ['JV', 'JV']];
+    const COLUMNS = [
+      { key: 'name', label: 'Player' },
+      { key: 'pos', label: 'Pos', className: 'pos' },
+      { key: 'ftPct', label: 'FTs' },
+      { key: 'mikans', label: 'Mikans' },
+      { key: 'threes', label: '3PTs' },
+    ];
+    const SEASON = 'season';
+    let data;
+    let view = SEASON;
+    let sortKey = 'name';
+
+    const pct = (made, attempts) => (attempts ? `${((100 * made) / attempts).toFixed(1).replace(/\.0$/, '')}%` : '');
+    const lastName = (name) => name.slice(name.indexOf(' ') + 1);
+    const byLastName = (a, b) => lastName(a.name).localeCompare(lastName(b.name));
+    const formatDate = (date) => new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+
+    function el(tag, attrs = {}, ...children) {
+      const node = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+      node.append(...children);
+      return node;
+    }
+
+    // Adds up the selected practices (one day, or the whole season) per player.
+    function totals() {
+      const practices = view === SEASON ? data.practices : data.practices.filter((p) => p.date === view);
+      return Object.entries(data.roster).map(([name, { team, pos }]) => {
+        const row = { name, team, pos, ftMade: 0, ftAttempts: 0, mikans: null, threes: null };
+        for (const practice of practices) {
+          const s = practice.stats[name];
+          if (!s) continue;
+          if (s.ft != null) {
+            row.ftMade += s.ft;
+            row.ftAttempts += practice.ftAttempts;
+          }
+          if (s.mikans != null) row.mikans = (row.mikans || 0) + s.mikans;
+          if (s.threes != null) row.threes = (row.threes || 0) + s.threes;
+        }
+        row.ftPct = row.ftAttempts ? row.ftMade / row.ftAttempts : null;
+        return row;
+      });
+    }
+
+    function sortRows(rows) {
+      return rows.sort((a, b) => {
+        if (sortKey === 'name') return byLastName(a, b);
+        if (sortKey === 'pos') return a.pos.localeCompare(b.pos) || byLastName(a, b);
+        // Stats sort high to low, with unrecorded ones last.
+        return (b[sortKey] ?? -1) - (a[sortKey] ?? -1) || byLastName(a, b);
+      });
+    }
+
+    function statCells(row) {
+      const blank = () => el('td', { class: 'none' }, '–');
+      return [
+        row.ftAttempts ? el('td', {}, `${row.ftMade}/${row.ftAttempts}`, el('span', { class: 'pct' }, pct(row.ftMade, row.ftAttempts))) : blank(),
+        row.mikans == null ? blank() : el('td', {}, row.mikans),
+        row.threes == null ? blank() : el('td', {}, row.threes),
+      ];
+    }
+
+    function sumRows(rows) {
+      const sum = (key) => rows.reduce((total, r) => (r[key] == null ? total : (total || 0) + r[key]), null);
+      return { ftMade: sum('ftMade'), ftAttempts: sum('ftAttempts'), mikans: sum('mikans'), threes: sum('threes') };
+    }
+
+    function teamTable(rows) {
+      const head = el('tr');
+      for (const c of COLUMNS) {
+        const th = el('th', { class: [c.className, sortKey === c.key ? 'sorted' : ''].filter(Boolean).join(' ') }, c.label);
+        th.addEventListener('click', () => {
+          sortKey = c.key;
+          render();
+        });
+        head.append(th);
+      }
+      const body = sortRows(rows).map((r) => el('tr', {}, el('td', {}, r.name), el('td', { class: 'pos' }, r.pos), ...statCells(r)));
+      const foot = el('tr', {}, el('td', {}, 'Total'), el('td'), ...statCells(sumRows(rows)));
+      return el('div', { class: 'stats-table-wrap' },
+        el('table', { class: 'stats-table' }, el('colgroup', {}, ...COLUMNS.map((c) => el('col', { class: c.key }))), el('thead', {}, head), el('tbody', {}, ...body), el('tfoot', {}, foot)));
+    }
+
+    function summary(rows) {
+      const card = (label, group) => {
+        const { ftMade, ftAttempts } = sumRows(group);
+        return el('div', {}, el('b', {}, pct(ftMade, ftAttempts) || '–'), el('span', {}, `${label} FTs · ${ftMade || 0}/${ftAttempts || 0}`));
+      };
+      return el('div', { class: 'stats-summary' },
+        ...TEAMS.map(([team, label]) => card(label, rows.filter((r) => r.team === team))),
+        card('Team', rows));
+    }
+
+    function dayTabs() {
+      const days = [...data.practices].sort((a, b) => b.date.localeCompare(a.date));
+      const tabs = [[SEASON, `Season total (${days.length})`], ...days.map((p) => [p.date, formatDate(p.date)])];
+      return el('div', { class: 'stats-days', role: 'tablist' }, ...tabs.map(([key, label]) => {
+        const tab = el('button', { type: 'button', role: 'tab', class: view === key ? 'active' : '' }, label);
+        tab.addEventListener('click', () => {
+          view = key;
+          render();
+        });
+        return tab;
+      }));
+    }
+
+    function render() {
+      const rows = totals();
+      const ftAttempts = view === SEASON ? null : data.practices.find((p) => p.date === view).ftAttempts;
+      const intro = view === SEASON
+        ? 'Totals for every practice. FTs are makes/attempts, Mikans are makes in the time limit, 3PTs are makes in 1 minute.'
+        : `FTs are makes out of ${ftAttempts}, Mikans are makes in the time limit, 3PTs are makes in 1 minute.`;
+      document.getElementById('stats').replaceChildren(
+        dayTabs(),
+        el('p', { class: 'stats-intro' }, intro),
+        summary(rows),
+        ...TEAMS.flatMap(([team, label]) => [el('h2', {}, label), teamTable(rows.filter((r) => r.team === team))]),
+      );
+    }
+
+    window.renderStats = (stats) => {
+      data = stats;
+      render();
+    };
+
+    unlockPage(window.STATS_ENCRYPTED, ({ html, script }) => {
+      document.getElementById('stats').innerHTML = html;
+      new Function(script)();
+    });
+  </script>
+</body>
+</html>
