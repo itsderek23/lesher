@@ -39,6 +39,7 @@
     .stats-table col.pos { width: 3.5rem; }
     .stats-table col.ftPct { width: 8rem; }
     .stats-table col.mikans { width: 6rem; }
+    .stats-table col.elbows { width: 6rem; }
     .stats-table col.threes { width: 5rem; }
     .stats-table th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #555; cursor: pointer; user-select: none; }
     .stats-table th.sorted::after { content: " ▾"; }
@@ -52,6 +53,7 @@
       .stats-table col.pos { width: 2.5rem; }
       .stats-table col.ftPct { width: 6.5rem; }
       .stats-table col.mikans { width: 4.25rem; }
+      .stats-table col.elbows { width: 4.25rem; }
       .stats-table col.threes { width: 3.25rem; }
       .stats-table th { font-size: .7rem; }
     }
@@ -105,8 +107,8 @@
     // Practice shooting stats. The roster and each practice's numbers live in stats.private.html
     // (encrypted into stats.enc.js), whose script calls renderStats({ roster, practices }).
     //   roster: { 'Name': { team: 'V' | 'JV', pos: 'G' | 'H' } }
-    //   practices: [{ date: 'YYYY-MM-DD', ftAttempts, stats: { 'Name': { ft, mikans, threes } } }]
-    // FTs are makes out of ftAttempts, Mikans are makes in the time limit, 3PTs are makes in 1 minute. A stat
+    //   practices: [{ date: 'YYYY-MM-DD', ftAttempts, stats: { 'Name': { ft, mikans, elbows, threes } } }]
+    // FTs are makes out of ftAttempts, Mikans and Elbows are makes in the time limit, 3PTs are makes in 1 minute. A stat
     // left out wasn't recorded for that player that day.
     const TEAMS = [['V', 'Varsity'], ['JV', 'JV']];
     const COLUMNS = [
@@ -114,6 +116,7 @@
       { key: 'pos', label: 'Pos', className: 'pos' },
       { key: 'ftPct', label: 'FTs' },
       { key: 'mikans', label: 'Mikans' },
+      { key: 'elbows', label: 'Elbows' },
       { key: 'threes', label: '3PTs' },
     ];
     const SEASON = 'season';
@@ -137,7 +140,7 @@
     function totals() {
       const practices = view === SEASON ? data.practices : data.practices.filter((p) => p.date === view);
       return Object.entries(data.roster).map(([name, { team, pos }]) => {
-        const row = { name, team, pos, ftMade: 0, ftAttempts: 0, mikans: null, threes: null };
+        const row = { name, team, pos, ftMade: 0, ftAttempts: 0, mikans: null, elbows: null, threes: null };
         for (const practice of practices) {
           const s = practice.stats[name];
           if (!s) continue;
@@ -146,6 +149,7 @@
             row.ftAttempts += practice.ftAttempts;
           }
           if (s.mikans != null) row.mikans = (row.mikans || 0) + s.mikans;
+          if (s.elbows != null) row.elbows = (row.elbows || 0) + s.elbows;
           if (s.threes != null) row.threes = (row.threes || 0) + s.threes;
         }
         row.ftPct = row.ftAttempts ? row.ftMade / row.ftAttempts : null;
@@ -167,13 +171,14 @@
       return [
         row.ftAttempts ? el('td', {}, `${row.ftMade}/${row.ftAttempts}`, el('span', { class: 'pct' }, pct(row.ftMade, row.ftAttempts))) : blank(),
         row.mikans == null ? blank() : el('td', {}, row.mikans),
+        row.elbows == null ? blank() : el('td', {}, row.elbows),
         row.threes == null ? blank() : el('td', {}, row.threes),
       ];
     }
 
     function sumRows(rows) {
       const sum = (key) => rows.reduce((total, r) => (r[key] == null ? total : (total || 0) + r[key]), null);
-      return { ftMade: sum('ftMade'), ftAttempts: sum('ftAttempts'), mikans: sum('mikans'), threes: sum('threes') };
+      return { ftMade: sum('ftMade'), ftAttempts: sum('ftAttempts'), mikans: sum('mikans'), elbows: sum('elbows'), threes: sum('threes') };
     }
 
     function teamTable(rows) {
@@ -219,8 +224,8 @@
       const rows = totals();
       const ftAttempts = view === SEASON ? null : data.practices.find((p) => p.date === view).ftAttempts;
       const intro = view === SEASON
-        ? 'Totals for every practice. FTs are makes/attempts, Mikans are makes in the time limit, 3PTs are makes in 1 minute.'
-        : `FTs are makes out of ${ftAttempts}, Mikans are makes in the time limit, 3PTs are makes in 1 minute.`;
+        ? 'Totals for every practice. FTs are makes/attempts, Mikans and Elbows are makes in the time limit, 3PTs are makes in 1 minute.'
+        : `FTs are makes out of ${ftAttempts}, Mikans and Elbows are makes in the time limit, 3PTs are makes in 1 minute.`;
       document.getElementById('stats').replaceChildren(
         dayTabs(),
         el('p', { class: 'stats-intro' }, intro),
