@@ -228,6 +228,13 @@
             holder = a.to;
             return { ...a, lines };
           }
+          // A turn sets a screen in place, facing the given side (right, left, up, down).
+          if (a.type === 'turn') {
+            const [x, y] = pos[a.player];
+            const head = el('g', { class: 'trail-end screen', transform: `translate(${x} ${y}) rotate(${SCREEN_ANGLES[a.facing]})` }, group);
+            el('line', { x1: PLAYER_R + 6, y1: -14, x2: PLAYER_R + 6, y2: 14 }, head);
+            return { ...a, head };
+          }
           const points = [pos[a.player]].concat(a.to);
           const path = el('path', { d: smoothPath(points), class: `trail ${a.type}` }, group);
           const length = path.getTotalLength();
@@ -312,6 +319,7 @@
       let holder = this.startHolder;
       let ballAt = null;
       let current = -1;
+      const turned = new Set();
 
       this.steps.forEach((step, i) => {
         const local = t - this.stepStart(i);
@@ -350,6 +358,11 @@
             else if (p > 0) ballAt = [bx + BALL_OFFSET[0] - ox, by + BALL_OFFSET[1] - oy];
             continue;
           }
+          if (a.type === 'turn') {
+            a.head.style.display = p > 0 ? '' : 'none';
+            if (p > 0) turned.add(String(a.player));
+            continue;
+          }
           a.path.setAttribute('stroke-dashoffset', a.length * (1 - eased));
           a.head.style.display = p >= 1 ? '' : 'none';
           // A move that hasn't started leaves the player where an earlier move in this step put them.
@@ -378,10 +391,10 @@
         text.textContent = calls[id] || '';
         this.stars[id].style.display = calls[id] === 'LOW' ? '' : 'none';
       }
-      // A starting screen goes away once that player moves.
+      // A starting screen goes away once that player moves or turns.
       for (const [id, bar] of Object.entries(this.startScreens)) {
         const [sx, sy] = this.startPositions[id];
-        bar.style.display = pos[id][0] === sx && pos[id][1] === sy ? '' : 'none';
+        bar.style.display = pos[id][0] === sx && pos[id][1] === sy && !turned.has(id) ? '' : 'none';
       }
       if (!ballAt) {
         const h = pos[holder];
