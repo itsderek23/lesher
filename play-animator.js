@@ -13,11 +13,13 @@
   // Baseline plays show the frontcourt below the baseline; sideline plays show it down to half court,
   // with the out of bounds area along the right sideline. Press plays show the backcourt (inbounding
   // under the opponent's basket) and past half court. Half court sets have no out of bounds area.
+  // Full court shows both baskets, with the inbound under the top one.
   const COURTS = {
     halfcourt: { viewBox: '-20 -20 540 390', depth: 350 },
     baseline: { viewBox: '-20 -80 540 420', depth: 340 },
     sideline: { viewBox: '-20 -30 610 520', depth: 470 },
     press: { viewBox: '-20 -80 540 670', depth: 580 },
+    fullcourt: { viewBox: '-20 -80 540 1040', depth: 940 },
   };
 
   function el(name, attrs, parent) {
@@ -61,6 +63,26 @@
     const { depth } = COURTS[view];
     const g = el('g', { class: 'court' }, svg);
     el('rect', { x: 0, y: 0, width: 500, height: depth, class: 'floor' }, g);
+    drawEnd(g);
+    if (view === 'fullcourt') drawEnd(el('g', { transform: `translate(0 ${depth}) scale(1 -1)` }, g));
+    // Court boundary.
+    el('path', { d: `M0 ${depth} L0 0 L500 0 L500 ${depth}`, class: 'line boundary' }, g);
+    if (view === 'sideline') {
+      el('line', { x1: 0, y1: depth, x2: 500, y2: depth, class: 'line boundary' }, g);
+      el('path', { d: `M190 ${depth} A60 60 0 0 1 310 ${depth}`, class: 'line' }, g);
+      el('text', { x: 562, y: 140, class: 'court-label', transform: 'rotate(90 562 140)' }, g).textContent = 'OUT OF BOUNDS';
+    } else if (view !== 'halfcourt') {
+      el('text', { x: 250, y: -52, class: 'court-label' }, g).textContent = 'OUT OF BOUNDS';
+    }
+    if (view === 'press' || view === 'fullcourt') {
+      el('line', { x1: 0, y1: 470, x2: 500, y2: 470, class: 'line boundary' }, g);
+      el('circle', { cx: 250, cy: 470, r: 60, class: 'line' }, g);
+    }
+    if (view === 'fullcourt') el('line', { x1: 0, y1: depth, x2: 500, y2: depth, class: 'line boundary' }, g);
+  }
+
+  // Paint, free throw circle, three point line and hoop at the baseline (y=0) end.
+  function drawEnd(g) {
     el('rect', { x: 170, y: 0, width: 160, height: 190, class: 'paint' }, g);
     // Free throw circle: solid away from the hoop, dashed inside the lane.
     el('path', { d: 'M190 190 A60 60 0 0 0 310 190', class: 'line' }, g);
@@ -77,19 +99,6 @@
     el('line', { x1: 220, y1: 40, x2: 280, y2: 40, class: 'backboard' }, g);
     el('line', { x1: 250, y1: 40, x2: 250, y2: 43.5, class: 'rim' }, g);
     el('circle', { cx: 250, cy: 52.5, r: 9, class: 'rim' }, g);
-    // Court boundary.
-    el('path', { d: `M0 ${depth} L0 0 L500 0 L500 ${depth}`, class: 'line boundary' }, g);
-    if (view === 'sideline') {
-      el('line', { x1: 0, y1: depth, x2: 500, y2: depth, class: 'line boundary' }, g);
-      el('path', { d: `M190 ${depth} A60 60 0 0 1 310 ${depth}`, class: 'line' }, g);
-      el('text', { x: 562, y: 140, class: 'court-label', transform: 'rotate(90 562 140)' }, g).textContent = 'OUT OF BOUNDS';
-    } else if (view !== 'halfcourt') {
-      el('text', { x: 250, y: -52, class: 'court-label' }, g).textContent = 'OUT OF BOUNDS';
-    }
-    if (view === 'press') {
-      el('line', { x1: 0, y1: 470, x2: 500, y2: 470, class: 'line boundary' }, g);
-      el('circle', { cx: 250, cy: 470, r: 60, class: 'line' }, g);
-    }
   }
 
   // The card you last clicked or tapped is selected; the space bar plays and pauses it.
