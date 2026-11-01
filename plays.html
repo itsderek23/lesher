@@ -34,6 +34,10 @@
     .play-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; margin-bottom: 3rem; }
     @media (max-width: 800px) { .play-grid { grid-template-columns: 1fr; } }
     .play-card { min-width: 0; }
+    /* Cards in a row share the grid's rows, so their tabs, diagrams and controls line up. */
+    .play-card:not(.fullscreen) { display: grid; grid-row: span 5; grid-template-rows: subgrid; row-gap: 0; }
+    .play-head { display: flex; flex-direction: column; }
+    .play-head .play-variants { margin-top: auto; }
     .play-card h2 { margin: 0; font-size: 1.25rem; }
     /* Section headings read as dividers so they stand apart from play titles. */
     #plays > h2 {

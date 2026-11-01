@@ -116,9 +116,12 @@
       const play = this.play;
       this.container = container;
       container.classList.add('play-card');
-      container.appendChild(html('h2', {}, play.name));
-      container.appendChild(html('p', { class: 'play-meta' }, `${play.type} · ${play.set}`));
-      if (play.description) container.appendChild(html('p', { class: 'play-desc' }, play.description));
+      // The title, meta, description and tabs are grouped so cards side by side can line up.
+      const head = html('div', { class: 'play-head' });
+      container.appendChild(head);
+      head.appendChild(html('h2', {}, play.name));
+      head.appendChild(html('p', { class: 'play-meta' }, `${play.type} · ${play.set}`));
+      if (play.description) head.appendChild(html('p', { class: 'play-desc' }, play.description));
 
       if (this.variants.length > 1) {
         const tabs = html('div', { class: 'play-variants', role: 'tablist' });
@@ -129,7 +132,7 @@
           return tab;
         });
         this.variantTabs[0].classList.add('active');
-        container.appendChild(tabs);
+        head.appendChild(tabs);
       }
 
       const view = play.court || 'baseline';
