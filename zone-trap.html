@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="favicon-32x32.png">
+<title>Breaking the Zone Trap</title>
+<style>
+:root { --max: 1100px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; background: #fff; overflow-x: hidden; }
+.wrap { max-width: var(--max); margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+h1 { margin: 0 0 .25rem; color: #002147; }
+.sub { color: #555; margin: 0 0 1.5rem; }
+.drills { list-style: none; padding: 0; margin: 0 0 2.5rem; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1.25rem 2.5rem; counter-reset: d; }
+@media (max-width: 800px) { .drills { grid-template-columns: 1fr; } }
+.drills > li { counter-increment: d; border-left: 3px solid #002147; padding: .1rem 0 .1rem 1rem; }
+.drills h3 { margin: 0 0 .25rem; font-size: 1.05rem; color: #002147; }
+.drills h3::before { content: counter(d) ". "; color: #e60000; }
+.drills h3 span { font-weight: 500; color: #666; font-size: .9rem; }
+.drills p { margin: 0 0 .4rem; }
+.drills ul { margin: 0; padding-left: 1.1rem; }
+.cues { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; padding: 0; list-style: none; }
+.cues li { background: #002147; color: #fff; border-radius: 999px; padding: .3rem .9rem; font-weight: 600; font-size: .95rem; }
+.note { margin: 0 0 2.5rem; }
+.points { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; margin: 0 0 2.5rem; }
+@media (max-width: 800px) { .points { grid-template-columns: 1fr; } }
+.points div { border-top: 3px solid #e60000; padding-top: .5rem; }
+.points b { color: #002147; }
+h2.section { margin: 0 0 1.25rem; padding-bottom: .4rem; border-bottom: 3px solid #e60000; font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: #002147; }
+    .play-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; margin-bottom: 3rem; }
+    @media (max-width: 800px) { .play-grid { grid-template-columns: 1fr; } }
+    .play-card { min-width: 0; }
+    /* Cards in a row share the grid's rows, so their tabs, diagrams and controls line up. */
+    .play-card:not(.fullscreen) { display: grid; grid-row: span 5; grid-template-rows: subgrid; row-gap: 0; }
+    .play-head { display: flex; flex-direction: column; }
+    .play-head .play-variants { margin-top: auto; }
+    .play-card h2 { margin: 0; font-size: 1.25rem; }
+    /* Section headings read as dividers so they stand apart from play titles. */
+    #plays > h2 {
+      margin: 0 0 1.25rem; padding-bottom: .4rem; border-bottom: 3px solid #e60000;
+      font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: #002147;
+    }
+    .play-meta { margin: 0 0 .5rem; color: #666; font-size: .95rem; }
+    .play-desc { margin: 0 0 1rem; }
+    .play-card svg { display: block; width: 100%; height: auto; border-radius: .75rem; border: 1px solid #ddd; background: #eef1f5; }
+    .play-card:not(.fullscreen) svg { cursor: zoom-in; }
+    .play-card.selected:not(.fullscreen) svg { border-color: #002147; box-shadow: 0 0 0 2px #002147; }
+
+    .play-card.fullscreen {
+      position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column;
+      padding: 1rem; background: #fff; overflow: auto;
+    }
+    .play-card.fullscreen > * { flex-shrink: 0; }
+    .play-card.fullscreen svg { flex: 1 1 auto; flex-shrink: 1; min-height: 0; height: 100%; border: 0; }
+    .play-card.fullscreen .play-meta,
+    .play-card.fullscreen .play-desc { display: none; }
+    .play-card.fullscreen .play-caption { min-height: 2.4em; font-size: 1.15rem; }
+    .play-full { margin-left: auto; }
+    .play-card.static .play-controls > :not(.play-full), .play-card.static .play-scrub { display: none; }
+    .play-variants { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .75rem; }
+    .play-variants button {
+      font: inherit; font-size: .9rem; padding: .3rem .8rem; border: 1px solid #ccc; border-radius: 999px;
+      background: #fff; color: #444; cursor: pointer;
+    }
+    .play-variants button.active { background: #002147; border-color: #002147; color: #fff; }
+
+    .court .oob { fill: #eef1f5; }
+    .court .floor { fill: #f6ead7; }
+    .court .paint { fill: #e9d6b6; stroke: #333; stroke-width: 2.5; }
+    .court .line { fill: none; stroke: #333; stroke-width: 2.5; }
+    .court .dashed { stroke-dasharray: 8 7; }
+    .court .boundary { stroke-width: 4; }
+    .court .backboard { stroke: #333; stroke-width: 5; }
+    .court .rim { fill: none; stroke: #e60000; stroke-width: 3; }
+    .court-label { font: 600 16px system-ui, sans-serif; fill: #8a94a3; text-anchor: middle; letter-spacing: 2px; }
+
+    .trail { fill: none; stroke: #002147; stroke-width: 3.5; stroke-linecap: round; }
+    .trail.screen { stroke: #e60000; }
+    .trail.pass { stroke: #555; stroke-dasharray: 9 7; stroke-width: 3; }
+    .vacated { fill: none; stroke: #e60000; stroke-width: 3; stroke-dasharray: 6 5; animation: vacated-pulse .5s ease-in-out infinite alternate; }
+    @keyframes vacated-pulse { from { opacity: .2; } to { opacity: 1; } }
+    .trail.handoff { stroke: #002147; stroke-dasharray: 6 4; stroke-width: 2.5; }
+    .trail-end path { fill: #002147; }
+    .trail-end line { stroke: #e60000; stroke-width: 5; stroke-linecap: round; }
+    .step-trail { transition: opacity .3s; }
+    .step-trail.past { opacity: .3; }
+
+    .player circle { fill: #002147; stroke: #fff; stroke-width: 3; }
+    .player text { fill: #fff; font: 700 15px system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; }
+    .ball { fill: #f08a24; stroke: #7a3d06; stroke-width: 2; }
+    .trail.shift, .trail-end.shift { display: none; }
+    .player.defense circle { fill: #fff; stroke: #e60000; stroke-width: 3; }
+    .player.defense text { fill: #e60000; }
+    .player.defense .call { font-size: 13px; letter-spacing: .5px; fill: #002147; paint-order: stroke; stroke: #f6ead7; stroke-width: 4px; }
+    .low-star { fill: #f2b705; stroke: #a87d00; stroke-width: 1.5; }
+    .guard { stroke: #e60000; stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .7; }
+
+    .play-caption { min-height: 3.2em; margin: .75rem 0 .5rem; font-weight: 600; }
+    .play-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .play-controls button {
+      font: inherit; padding: .4rem .75rem; border: 1px solid #ccc; border-radius: .5rem; background: #fff; cursor: pointer;
+    }
+    .play-controls button.primary { background: #002147; border-color: #002147; color: #fff; min-width: 6.5rem; }
+    .play-scrub { width: 100%; margin: .75rem 0 0; accent-color: #002147; }
+    .position-key { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding: 0; margin: 0 0 2rem; list-style: none; }
+    .position-key[hidden] { display: none; }
+    .position-key b.defender { background: #fff; color: #e60000; border: 3px solid #e60000; box-sizing: border-box; }
+    .position-key b.star { background: none; color: #f2b705; font-size: 1.6rem; }
+    .position-key li { display: flex; align-items: center; gap: .5rem; }
+    .position-key b { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: #002147; color: #fff; font-size: .8rem; }
+    @media (max-width: 480px) {
+      .play-controls { flex-wrap: nowrap; gap: .4rem; }
+      .play-controls button { padding: .4rem .6rem; }
+      .play-controls button.primary { min-width: 5.5rem; }
+      .play-full .label { display: none; }
+    }
+    @media (max-width: 360px) {
+      .play-controls button { padding: .35rem .45rem; font-size: .9rem; white-space: nowrap; }
+      .play-controls button.primary { min-width: 4.75rem; }
+    }
+  
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Breaking the Zone Trap</h1>
+  <p class="sub">Timnath sets up in a zone and traps the first pass in the corner. Here's how the trap works, where it leaves people open, and how we beat it. Press Play or step through each diagram.</p>
+  <div class="points">
+    <div><b>Catch it high.</b> The corner catches at the free throw line extended, facing up the floor, not deep in the corner where the trap wants you.</div>
+    <div><b>Out in 2 seconds.</b> Ball high, pivot away from the trap, no dribbling into it. Pass over the top to the middle or back to the big.</div>
+    <div><b>Then attack.</b> Beating the trap usually means 3-on-2 or 4-on-3 the other way. Push it and finish with a layup.</div>
+  </div>
+  <h2 class="section">The trap and how we break it</h2>
+  <div class="play-grid"><div id="zone-trap"></div><div id="press-zone-trap"></div></div>
+
+  <h2 class="section">How to teach it</h2>
+  <p class="note">Teach it in this order before Timnath on the 16th. Run it against the JV and add extra defenders, so 5 defenders feels easy on game day. Before you start, teach the JV the trap with one rule: <b>when the ball is caught in a corner, the two closest trap and everyone else takes away the middle and the sideline.</b> If the JV don't run it like Timnath does, the reps don't help.</p>
+  <ul class="cues">
+    <li>Catch high</li>
+    <li>Ball up, pivot away</li>
+    <li>Two seconds</li>
+    <li>Big steps in</li>
+    <li>Flash behind the trap</li>
+    <li>Score it</li>
+  </ul>
+  <ol class="drills">
+    <li>
+      <h3>Walk-through <span>· 5 min · 5 on 0, then 5 on 5 at half speed</span></h3>
+      <p>Walk through the spacing and both breaks from the diagrams. Make the JV trap at half speed so everyone sees where the gaps open.</p>
+      <ul>
+        <li>The big inbounds every time, then steps in under the basket right after the pass.</li>
+        <li>The corners pop out to the free throw line extended. Don't drift deep into the corner.</li>
+        <li>The middle guard waits at half court until the trap comes, then flashes.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>Trap escape <span>· 8 min · 3 on 2</span></h3>
+      <p>A corner catches with two JV trapping, and the big and the middle guard are the outlets. Rotate so everyone gets trapped.</p>
+      <ul>
+        <li>Ball high, elbows out, pivot away. Never pick up the dribble going into the trap.</li>
+        <li>The trap gets 2 seconds. Count it out loud. If it lasts longer, it's a turnover.</li>
+        <li>Pass by the trappers' ears, not between them.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>Middle flash <span>· 8 min · 4 on 4</span></h3>
+      <p>The big, a corner, the middle guard and the far horn, against two trappers, a middle defender and a safety. Read it live: if the middle is open, hit it. If the middle defender jumps it, the ball goes back to the big.</p>
+      <ul>
+        <li>The flash comes from half court into the gap and catches at the 3-point line, facing the ball.</li>
+        <li>On the catch, turn and look up the floor right away. The horns should already be running.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>Overload <span>· 12 min · 5 on 7</span></h3>
+      <p>Our five against the JV's five plus two extra. Use the extras to jump the reversal to the big and sit in the middle. It forces faster decisions than any team will.</p>
+      <ul>
+        <li>10-second count to half court.</li>
+        <li>Reps after a make, too. Grab it, step out, and inbound before the press sets.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>Break and score <span>· 10 min · 5 on 5 full court</span></h3>
+      <p>The break doesn't end at half court. Play it live to a shot.</p>
+      <ul>
+        <li>Offense: 1 point for crossing half court, 2 for a layup.</li>
+        <li>Defense: 2 points for a steal or a 10-second violation.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>Get back <span>· 10 min · 5 on 6</span></h3>
+      <p>The other half of Timnath: they push after every make or miss. Play 5 on 5 half court. On any make or miss, a coach outlets to the JV and they push, with a sixth player leaking out early.</p>
+      <ul>
+        <li>Sprint back, stop the ball first, then find your man.</li>
+        <li>1 point every time we stop the ball before half court.</li>
+      </ul>
+    </li>
+  </ol>
+</main>
+<script src="play-animator.js"></script>
+<script>
+    const popToSpace = {
+      caption: 'Against a zone press, the elbows don’t screen. They pop out to open space.',
+      actions: [
+        { player: 3, type: 'cut', to: [[400, 175], [432, 135]] },
+        { player: 2, type: 'cut', to: [[110, 185], [72, 165]] },
+      ],
+    };
+    // Zone trap: their zone press traps the first pass in the corner. Red X's are them.
+    const zone = (spots) => Object.fromEntries(
+      Object.entries(spots).map(([id, s]) => [id, { ...s, label: 'X', defense: true }]),
+    );
+    // vs Zone Trap: our big (H) inbounds every time, a quick guard (C) waits in the middle at half court.
+    const trapOffense = {
+      1: { x: 330, y: -32, label: 'H' },
+      2: { x: 160, y: 190, label: 'PG' },
+      3: { x: 340, y: 190, label: 'C' },
+      4: { x: 250, y: 450, label: 'C' },
+      5: { x: 430, y: 440, label: 'H' },
+    };
+    const twoTwoOne = zone({
+      x1: { x: 190, y: 140 },
+      x2: { x: 310, y: 140 },
+      x3: { x: 130, y: 330 },
+      x4: { x: 370, y: 330 },
+      x5: { x: 250, y: 525 },
+    });
+    const oneTwoOneOne = zone({
+      x1: { x: 330, y: 14 },
+      x2: { x: 400, y: 215 },
+      x3: { x: 100, y: 215 },
+      x4: { x: 250, y: 320 },
+      x5: { x: 250, y: 525 },
+    });
+    const trapSetup = 'Our big (H) inbounds every time. The PG and a corner (C) at the elbows, a quick guard (C) in the middle at half court, the other horn on the ball-side sideline.';
+    const cornerInbound = { caption: 'The first pass goes to the corner — that’s their trigger.', duration: 900, actions: [{ type: 'pass', from: 1, to: 3 }] };
+    // 2-2-1: the ball-side front and back players trap. The weak-side front steals the middle,
+    // the weak-side back slides over, and the safety shades the ball.
+    const twoTwoOneTrap = (extra = []) => ({
+      caption: 'TRAP: the ball-side front and back players trap the corner. The weak-side front slides to the middle to steal the pass there, the weak-side back slides toward the ball, and the safety shades over.',
+      duration: 2400,
+      calls: { x1: 'MID', x2: 'TRAP', x3: 'SLIDE', x4: 'TRAP', x5: 'SAFE' },
+      actions: [
+        { player: 'x2', type: 'shift', to: [[405, 140]], end: 0.6 },
+        { player: 'x4', type: 'shift', to: [[455, 185]], end: 0.6 },
+        { player: 'x1', type: 'shift', to: [[245, 240]], start: 0.2 },
+        { player: 'x3', type: 'shift', to: [[330, 370]], start: 0.2 },
+        { player: 'x5', type: 'shift', to: [[290, 525]], start: 0.2 },
+        ...extra,
+      ],
+    });
+    const stepIn = { player: 1, type: 'cut', to: [[335, 60], [250, 85]], start: 0.3 };
+
+    new PlayAnimator(document.getElementById('zone-trap'), {
+      name: 'Zone Trap',
+      type: 'Their press',
+      set: 'Zone press',
+      court: 'press',
+      description: 'How a zone press traps the first pass in the corner, and where it leaves people open. Red X’s are them.',
+      ball: 1,
+      variants: [
+        {
+          name: '2-2-1',
+          players: { ...trapOffense, ...twoTwoOne },
+          setup: '2-2-1: two up front between the inbounder and the elbows, two near half court, one safety deep. They let the inbound in on purpose.',
+          calls: { x5: 'SAFE' },
+          steps: [
+            popToSpace,
+            cornerInbound,
+            twoTwoOneTrap(),
+            {
+              caption: 'What’s open: nobody is on the inbounder, and the far side is empty because the weak-side front left for the middle. The pass that beats it: back to the inbounder, then to the PG on the far side — or right over the top to the middle behind the trap.',
+              duration: 1500,
+              actions: [stepIn],
+            },
+          ],
+        },
+        {
+          name: '1-2-1-1',
+          players: { ...trapOffense, ...oneTwoOneOne },
+          setup: '1-2-1-1: one on the inbounder, two wings at the free throw line extended, one in the middle, one safety deep.',
+          calls: { x1: 'BALL', x4: 'MID', x5: 'SAFE' },
+          steps: [
+            popToSpace,
+            cornerInbound,
+            {
+              caption: 'TRAP: the inbounder’s defender and the ball-side wing trap the corner. The weak-side wing slides to the middle, the middle slides to the ball-side sideline, and the safety shades over.',
+              duration: 2400,
+              calls: { x1: 'TRAP', x2: 'TRAP', x3: 'MID', x4: 'SIDE', x5: 'SAFE' },
+              actions: [
+                { player: 'x1', type: 'shift', to: [[395, 60], [385, 92]], end: 0.6 },
+                { player: 'x2', type: 'shift', to: [[455, 180]], end: 0.6 },
+                { player: 'x3', type: 'shift', to: [[250, 230]], start: 0.2 },
+                { player: 'x4', type: 'shift', to: [[420, 340]], start: 0.2 },
+                { player: 'x5', type: 'shift', to: [[290, 525]], start: 0.2 },
+              ],
+            },
+            {
+              caption: 'What’s open: the inbounder’s defender left to trap, so the inbounder is wide open stepping in, and the far side is empty. Back to the inbounder, then reverse it to the PG.',
+              duration: 1500,
+              actions: [stepIn],
+            },
+          ],
+        },
+      ],
+    });
+
+    new PlayAnimator(document.getElementById('press-zone-trap'), {
+      name: 'vs Zone Trap',
+      type: 'Press break',
+      set: 'Press break spacing',
+      court: 'press',
+      description: 'Our big inbounds and is the reversal outlet. Get the ball out of the trap in 2 seconds: over the top to the middle, or back to the big.',
+      players: { ...trapOffense, ...twoTwoOne },
+      ball: 1,
+      calls: { x5: 'SAFE' },
+      variants: [
+        {
+          name: 'Middle',
+          setup: trapSetup,
+          steps: [
+            popToSpace,
+            { ...cornerInbound, caption: 'Inbound to the corner. Catch it high — free throw line extended, facing up the floor — not deep in the corner.' },
+            twoTwoOneTrap([stepIn]),
+            {
+              caption: 'The middle guard flashes from half court into the gap behind the trappers and catches at the 3-point line. The corner keeps the ball high, pivots away from the trap, and hits them.',
+              duration: 2000,
+              actions: [
+                { player: 4, type: 'cut', to: [[290, 400], [335, 290]], end: 0.6 },
+                { type: 'pass', from: 3, to: 4, start: 0.55, end: 0.85 },
+              ],
+            },
+            {
+              caption: 'The middle turns and attacks. The PG and the horn fill the lanes: it’s 3-on-2 against the back of the press, or 1-on-1 against a bigger, slower defender.',
+              duration: 2400,
+              actions: [
+                { player: 4, type: 'cut', to: [[300, 380], [225, 505]] },
+                { player: 2, type: 'cut', to: [[80, 330], [90, 530]] },
+                { player: 5, type: 'cut', to: [[450, 480], [440, 540]], start: 0.2 },
+                { player: 'x3', type: 'shift', to: [[340, 430]], start: 0.2 },
+                { player: 'x1', type: 'shift', to: [[260, 330]], start: 0.3 },
+              ],
+            },
+          ],
+        },
+        {
+          name: 'Reverse',
+          setup: trapSetup,
+          steps: [
+            popToSpace,
+            { ...cornerInbound, caption: 'Inbound to the corner. Catch it high — free throw line extended, facing up the floor — not deep in the corner.' },
+            twoTwoOneTrap([stepIn]),
+            {
+              caption: 'The middle is taken. The big steps in under the basket — nobody is on them — and the corner gets it right back.',
+              duration: 900,
+              actions: [{ type: 'pass', from: 3, to: 1 }],
+            },
+            {
+              caption: 'Reverse it to the PG on the far side, who attacks up the open sideline before the zone can shift. If nobody picks up the big, they can push it up themselves.',
+              duration: 2400,
+              actions: [
+                { type: 'pass', from: 1, to: 2, end: 0.35 },
+                { player: 2, type: 'cut', to: [[90, 300], [130, 440]], start: 0.35 },
+                { player: 'x1', type: 'shift', to: [[160, 260]], start: 0.3 },
+                { player: 4, type: 'cut', to: [[230, 470], [220, 520]], start: 0.4 },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+</script>
+</body>
+</html>
