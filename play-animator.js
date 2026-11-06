@@ -219,13 +219,14 @@
         const group = el('g', { class: 'step-trail' }, this.trailLayer);
         const stepStartPos = { ...pos };
         const actions = step.actions.map((a) => {
-          // A pass is one dashed line; a handoff is drawn as a double line.
+          // A pass is one dashed line; a handoff is drawn as a double line. An option pass draws the
+          // line to show a look, but the ball stays with the passer.
           if (a.type === 'pass' || a.type === 'handoff') {
             const lines = (a.type === 'handoff' ? [-4, 4] : [0]).map((offset) => ({
               offset,
-              node: el('line', { class: `trail ${a.type}` }, group),
+              node: el('line', { class: `trail ${a.type}${a.option ? ' option' : ''}` }, group),
             }));
-            holder = a.to;
+            if (!a.option) holder = a.to;
             return { ...a, lines };
           }
           // A turn sets a screen in place, facing the given side (right, left, up, down).
@@ -354,6 +355,7 @@
               node.setAttribute('x2', bx + nx * offset);
               node.setAttribute('y2', by + ny * offset);
             }
+            if (a.option) continue;
             if (p >= 1) holder = a.to;
             else if (p > 0) ballAt = [bx + BALL_OFFSET[0] - ox, by + BALL_OFFSET[1] - oy];
             continue;
