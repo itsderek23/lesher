@@ -7,13 +7,6 @@
   <meta name="description" content="Lesher Middle School Boys Basketball practice shooting stats" />
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .unlock { max-width: 420px; margin: 0 0 2rem; }
-    .unlock label { display: block; margin-bottom: .5rem; }
-    .unlock-row { display: flex; gap: .5rem; }
-    .unlock input { flex: 1; min-width: 0; font: inherit; padding: .5rem .75rem; border: 1px solid #ccc; border-radius: .5rem; }
-    .unlock button { font: inherit; padding: .5rem 1rem; border: 0; border-radius: .5rem; background: #002147; color: #fff; cursor: pointer; }
-    .unlock-error { color: #e60000; margin: .5rem 0 0; }
-
     .stats-intro { margin: 0 0 1rem; color: #444; }
     .stats-days { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1.5rem; }
     .stats-days button {
@@ -80,15 +73,6 @@
     <section class="wrap">
       <h1>Shooting Stats</h1>
 
-      <form class="unlock" hidden>
-        <label for="team-password">Enter the team password to see the stats.</label>
-        <div class="unlock-row">
-          <input id="team-password" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" required>
-          <button type="submit">Unlock</button>
-        </div>
-        <p class="unlock-error" hidden>Incorrect password.</p>
-      </form>
-
       <div id="stats"></div>
     </section>
   </main>
@@ -97,15 +81,13 @@
     Join our <img src="band_logo.png" class="band_logo"><a href="https://band.us/n/a0a8bak2ydDa9" target="_blank">Band App</a> for updates.
   </footer>
 
-  <script src="unlock.js"></script>
-  <script src="stats.enc.js"></script>
   <script>
     document.querySelector('.menu').addEventListener('click', () => {
       document.body.classList.toggle('open');
     });
 
-    // Practice shooting stats. The roster and each practice's numbers live in stats.private.html
-    // (encrypted into stats.enc.js), whose script calls renderStats({ roster, practices }).
+    // Practice shooting stats. The roster and each practice's numbers are passed to renderStats({ roster, practices })
+    // at the bottom of this script.
     //   roster: { 'Name': { team: 'V' | 'JV', pos: 'G' | 'H' } }
     //   practices: [{ date: 'YYYY-MM-DD', ftAttempts, stats: { 'Name': { ft, mikans, elbows, threes } } }]
     // FTs are makes out of ftAttempts, Mikans and Elbows are makes in the time limit, 3PTs are makes in 1 minute. A stat
@@ -234,14 +216,121 @@
       );
     }
 
-    window.renderStats = (stats) => {
+    function renderStats(stats) {
       data = stats;
       render();
-    };
+    }
 
-    unlockPage(window.STATS_ENCRYPTED, ({ html, script }) => {
-      document.getElementById('stats').innerHTML = html;
-      new Function(script)();
+    // Practice shooting stats. Add a practice to the top of the list.
+    renderStats({
+      roster: {
+        'Asher Beauprez': { team: 'V', pos: 'G' },
+        'Max Blanchard': { team: 'V', pos: 'H' },
+        'Carter Dowling': { team: 'V', pos: 'G' },
+        'Judah Harris': { team: 'V', pos: 'H' },
+        'Bodhi Hottman': { team: 'V', pos: 'G' },
+        'Stewart Rapley': { team: 'V', pos: 'H' },
+        'Ryder Rozell': { team: 'V', pos: 'G' },
+        'Connor Thorson': { team: 'V', pos: 'G' },
+        'William Garrett': { team: 'JV', pos: 'H' },
+        'Cole Haynes': { team: 'JV', pos: 'G' },
+        'Thomas Langusch': { team: 'JV', pos: 'G' },
+        'Patrick Parker-Renga': { team: 'JV', pos: 'G' },
+        'August Parks': { team: 'JV', pos: 'H' },
+        'Miles Patton': { team: 'JV', pos: 'G' },
+        'Max Riojas': { team: 'JV', pos: 'H' },
+        'Hunter Steele-Wannemacher': { team: 'JV', pos: 'G' },
+      },
+      practices: [
+        {
+          date: '2026-11-06',
+          ftAttempts: 4,
+          stats: {
+            'Asher Beauprez': { ft: 3, threes: 6 },
+            'Max Blanchard': { ft: 3 },
+            'Carter Dowling': { ft: 4, threes: 4 },
+            'Judah Harris': { ft: 4 },
+            'Bodhi Hottman': { ft: 2, threes: 7 },
+            'Stewart Rapley': { ft: 2, threes: 6 },
+            'Ryder Rozell': { ft: 3, threes: 6 },
+            'Connor Thorson': { ft: 3, threes: 10 },
+            'William Garrett': { ft: 4 },
+            'Cole Haynes': { ft: 1, threes: 7 },
+            'Thomas Langusch': { ft: 3, threes: 8 },
+            'Patrick Parker-Renga': { ft: 1, threes: 8 },
+            'August Parks': { ft: 1, threes: 3 },
+            'Miles Patton': { ft: 2, threes: 7 },
+            'Max Riojas': { ft: 3 },
+            'Hunter Steele-Wannemacher': { ft: 2 },
+          },
+        },
+        {
+          date: '2026-11-03',
+          ftAttempts: 4,
+          stats: {
+            'Asher Beauprez': { ft: 3 },
+            'Max Blanchard': { ft: 1 },
+            'Carter Dowling': { ft: 2 },
+            'Judah Harris': { ft: 3 },
+            'Bodhi Hottman': { ft: 2 },
+            'Stewart Rapley': { ft: 1 },
+            'Ryder Rozell': { ft: 4 },
+            'Connor Thorson': { ft: 3 },
+            'William Garrett': { ft: 4 },
+            'Cole Haynes': { ft: 1 },
+            'Thomas Langusch': { ft: 3 },
+            'Patrick Parker-Renga': { ft: 2 },
+            'August Parks': { ft: 0 },
+            'Miles Patton': { ft: 2 },
+            'Max Riojas': { ft: 4 },
+            'Hunter Steele-Wannemacher': { ft: 2 },
+          },
+        },
+        {
+          date: '2026-10-30',
+          ftAttempts: 4,
+          stats: {
+            'Asher Beauprez': { ft: 3, threes: 8 },
+            'Max Blanchard': { ft: 1, elbows: 18, threes: 2 },
+            'Carter Dowling': { ft: 3 },
+            'Judah Harris': { ft: 2 },
+            'Bodhi Hottman': { ft: 4, threes: 7 },
+            'Stewart Rapley': { ft: 3, elbows: 3 },
+            'Ryder Rozell': { ft: 3, threes: 7 },
+            'Connor Thorson': { ft: 3, threes: 10 },
+            'William Garrett': { ft: 3, elbows: 26, threes: 9 },
+            'Cole Haynes': { ft: 1, threes: 3 },
+            'Thomas Langusch': { ft: 2, threes: 5 },
+            'Patrick Parker-Renga': { ft: 2 },
+            'August Parks': { ft: 2, threes: 5 },
+            'Miles Patton': { ft: 1, threes: 5 },
+            'Max Riojas': { ft: 3, threes: 7 },
+            'Hunter Steele-Wannemacher': { ft: 0, threes: 2 },
+          },
+        },
+        {
+          date: '2026-10-29',
+          ftAttempts: 4,
+          stats: {
+            'Asher Beauprez': { ft: 3, threes: 9 },
+            'Max Blanchard': { ft: 1, mikans: 14 },
+            'Carter Dowling': { ft: 3, threes: 3 },
+            'Judah Harris': { ft: 1, mikans: 30 },
+            'Bodhi Hottman': { ft: 3, threes: 6 },
+            'Stewart Rapley': { ft: 2, mikans: 30 },
+            'Ryder Rozell': { ft: 3, threes: 8 },
+            'Connor Thorson': { ft: 3, threes: 9 },
+            'William Garrett': { ft: 0, threes: 0 },
+            'Cole Haynes': { ft: 1, threes: 2 },
+            'Thomas Langusch': { ft: 3, threes: 6 },
+            'Patrick Parker-Renga': { ft: 2, threes: 3 },
+            'August Parks': { ft: 2, mikans: 30 },
+            'Miles Patton': { ft: 2, threes: 1 },
+            'Max Riojas': { ft: 4, threes: 1 },
+            'Hunter Steele-Wannemacher': { ft: 2, threes: 6 },
+          },
+        },
+      ],
     });
   </script>
 </body>

@@ -26,7 +26,9 @@ th, td { padding: .4rem .6rem; text-align: right; border-bottom: 1px solid #e3e3
 th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: #fff; }
 thead th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: #555; border-bottom: 2px solid #002147; }
 tbody tr:hover td { background: #f4f6f9; }
-tfoot td { font-weight: 700; border-top: 2px solid #002147; border-bottom: 0; }
+tfoot td { font-weight: 700; border-bottom: 0; }
+tfoot tr:first-child td { border-top: 2px solid #002147; }
+tfoot tr + tr td { color: #555; font-weight: 600; }
 td.dim { color: #aaa; }
 .game { margin: 0 0 1.75rem; }
 .game h3 { margin: 0 0 .1rem; font-size: 1.05rem; color: #002147; }
@@ -49,7 +51,9 @@ td.dim { color: #aaa; }
 <script>
   // Add a game to the top of the list. Each player listed played in the game.
   // fg2 / fg3 are made field goals; fta / ftm are free throws (leave them off when the scorebook didn't track makes).
-  // Points are worked out from the makes. `unassigned` is points in the final score that the scorebook didn't give to anyone.
+  // When the scorebook only has a point total, use `pts` instead of makes. `reb` / `stl` are rebounds and steals
+  // (leave them off when they weren't tracked). `oppStats` holds the other team's rebound/steal totals.
+  // `unassigned` is points in the final score that the scorebook didn't give to anyone.
   const games = [
     {
       date: '2026-11-09', team: 'V', opp: 'Webber', us: 44, them: 39, unassigned: 4,
@@ -78,56 +82,64 @@ td.dim { color: #aaa; }
       },
     },
     {
-      date: '2026-11-04', team: 'V', opp: 'Boltz', us: 53, them: 32, unassigned: 7,
+      date: '2026-11-04', team: 'V', opp: 'Boltz', us: 53, them: 32, oppStats: { reb: 24, stl: 4 },
       players: {
-        'Bodhi Hottman': { fg2: 2, fg3: 3 },
-        'Carter Dowling': { fg2: 2, fg3: 3 },
-        'Connor Thorson': { fg2: 3 },
-        'Max Blanchard': { fg2: 3 },
-        'Judah Harris': { fg2: 2 },
-        'Ryder Rozell': { fg2: 2 },
-        'Stewart Rapley': {},
-        'Asher Beauprez': {},
+        'Bodhi Hottman': { pts: 17, reb: 4, stl: 3 },
+        'Carter Dowling': { pts: 12, reb: 6, stl: 3 },
+        'Connor Thorson': { pts: 6, reb: 2, stl: 2 },
+        'Judah Harris': { pts: 6, reb: 3, stl: 1 },
+        'Max Blanchard': { pts: 6, reb: 2, stl: 1 },
+        'Ryder Rozell': { pts: 4, reb: 3, stl: 6 },
+        'Stewart Rapley': { pts: 2, reb: 6, stl: 1 },
+        'Asher Beauprez': { pts: 0, reb: 1, stl: 1 },
       },
     },
     {
-      date: '2026-11-04', team: 'JV', opp: 'Boltz', us: 49, them: 14, unassigned: 2,
+      date: '2026-11-04', team: 'JV', opp: 'Boltz', us: 49, them: 14, oppStats: { reb: 15, stl: 0 },
       players: {
-        'Thomas Langusch': { fg2: 3, fg3: 2 },
-        'William Garrett': { fg2: 2, fg3: 2 },
-        'Cole Haynes': { fg2: 4 },
-        'Hunter Steele-Wannemacher': { fg2: 1, fg3: 1 },
-        'August Parks': { fg2: 2 },
-        'Patrick Parker-Renga': { fg2: 2 },
-        'Max Riojas': { fg2: 1 },
-        'Miles Patton': { fg2: 1 },
+        'Thomas Langusch': { pts: 12, reb: 1 },
+        'William Garrett': { pts: 10, reb: 4 },
+        'Cole Haynes': { pts: 9, reb: 0 },
+        'Hunter Steele-Wannemacher': { pts: 5, reb: 5 },
+        'August Parks': { pts: 4, reb: 6 },
+        'Patrick Parker-Renga': { pts: 4, reb: 2 },
+        'Max Riojas': { pts: 3, reb: 0 },
+        'Miles Patton': { pts: 2, reb: 0 },
       },
     },
   ];
 
-  const pts = (s) => 2 * (s.fg2 || 0) + 3 * (s.fg3 || 0) + (s.ftm || 0);
+  const hasMakes = (s) => s.pts == null;
+  const pts = (s) => (hasMakes(s) ? 2 * (s.fg2 || 0) + 3 * (s.fg3 || 0) + (s.ftm || 0) : s.pts);
   const avg = (n, gp) => (gp ? (n / gp).toFixed(1) : '–');
   const pct = (m, a) => (a ? Math.round((100 * m) / a) + '%' : '–');
   const ft = (s) => (s.fta == null ? '–' : `${s.ftm}/${s.fta}`);
+  const cnt = (n, gp) => (gp ? n : '–');
   const fmtDate = (d) => new Date(d + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const sum = (arr, f) => arr.reduce((n, x) => n + f(x), 0);
 
   function render(team) {
     const list = games.filter((g) => g.team === team);
     const wins = list.filter((g) => g.us > g.them).length;
-    const forPts = list.reduce((n, g) => n + g.us, 0);
-    const against = list.reduce((n, g) => n + g.them, 0);
+    const forPts = sum(list, (g) => g.us);
+    const against = sum(list, (g) => g.them);
 
     const totals = {};
     for (const g of list) {
       for (const [name, s] of Object.entries(g.players)) {
-        const t = (totals[name] ||= { gp: 0, pts: 0, fg2: 0, fg3: 0, fta: 0, ftm: 0 });
+        const t = (totals[name] ||= { gp: 0, pts: 0, mgp: 0, fg2: 0, fg3: 0, fta: 0, ftm: 0, rgp: 0, reb: 0, sgp: 0, stl: 0 });
         t.gp += 1;
         t.pts += pts(s);
-        t.fg2 += s.fg2 || 0;
-        t.fg3 += s.fg3 || 0;
-        t.fta += s.fta || 0;
-        t.ftm += s.ftm || 0;
+        if (hasMakes(s)) {
+          t.mgp += 1;
+          t.fg2 += s.fg2 || 0;
+          t.fg3 += s.fg3 || 0;
+          t.fta += s.fta || 0;
+          t.ftm += s.ftm || 0;
+        }
+        if (s.reb != null) { t.rgp += 1; t.reb += s.reb; }
+        if (s.stl != null) { t.sgp += 1; t.stl += s.stl; }
       }
     }
     const rows = Object.entries(totals).sort((a, b) => b[1].pts / b[1].gp - a[1].pts / a[1].gp || a[0].localeCompare(b[0]));
@@ -140,35 +152,50 @@ td.dim { color: #aaa; }
       </div>
       <h2>Season totals &amp; averages</h2>
       <div class="scroll"><table>
-        <thead><tr><th>Player</th><th>GP</th><th>PTS</th><th>PPG</th><th>2PM</th><th>2PM/G</th><th>3PM</th><th>3PM/G</th><th>FT</th><th>FT%</th></tr></thead>
+        <thead><tr><th>Player</th><th>GP</th><th>PTS</th><th>PPG</th><th>REB</th><th>RPG</th><th>STL</th><th>SPG</th><th>2PM</th><th>2PM/G</th><th>3PM</th><th>3PM/G</th><th>FT</th><th>FT%</th></tr></thead>
         <tbody>${rows
           .map(
-            ([name, t]) => `<tr${t.pts ? '' : ' class="zero"'}>
+            ([name, t]) => `<tr>
               <td>${esc(name)}</td><td>${t.gp}</td><td>${t.pts}</td><td>${avg(t.pts, t.gp)}</td>
-              <td>${t.fg2}</td><td>${avg(t.fg2, t.gp)}</td><td>${t.fg3}</td><td>${avg(t.fg3, t.gp)}</td>
+              <td>${cnt(t.reb, t.rgp)}</td><td>${avg(t.reb, t.rgp)}</td><td>${cnt(t.stl, t.sgp)}</td><td>${avg(t.stl, t.sgp)}</td>
+              <td>${cnt(t.fg2, t.mgp)}</td><td>${avg(t.fg2, t.mgp)}</td><td>${cnt(t.fg3, t.mgp)}</td><td>${avg(t.fg3, t.mgp)}</td>
               <td>${t.fta ? `${t.ftm}/${t.fta}` : '–'}</td><td>${pct(t.ftm, t.fta)}</td></tr>`
           )
           .join('')}</tbody>
       </table></div>
-      <p class="note">FT% only counts games where the scorebook tracked free throw makes (Webber on).</p>
+      <p class="note">Each average only counts games where the scorebook tracked that stat. Boltz has points, rebounds and steals (no JV steals); Webber has made shots and free throws.</p>
       <h2>Games</h2>`;
 
     for (const g of list) {
+      const ps = Object.values(g.players);
       const players = Object.entries(g.players).sort((a, b) => pts(b[1]) - pts(a[1]) || a[0].localeCompare(b[0]));
       const res = g.us > g.them ? 'W' : 'L';
       const extra = [g.ot && 'Overtime', g.unassigned && `${g.unassigned} pts not credited to a player in the scorebook`].filter(Boolean).join(' · ');
+      const showMakes = ps.some(hasMakes);
+      const showReb = ps.some((s) => s.reb != null);
+      const showStl = ps.some((s) => s.stl != null);
+      const cols = [
+        ['PTS', (s) => pts(s), g.us, g.them],
+        showReb && ['REB', (s) => s.reb ?? '–', sum(ps, (s) => s.reb || 0), g.oppStats?.reb ?? '–'],
+        showStl && ['STL', (s) => s.stl ?? '–', sum(ps, (s) => s.stl || 0), g.oppStats?.stl ?? '–'],
+        showMakes && ['2PM', (s) => (hasMakes(s) ? s.fg2 || 0 : '–'), sum(ps, (s) => s.fg2 || 0), '–'],
+        showMakes && ['3PM', (s) => (hasMakes(s) ? s.fg3 || 0 : '–'), sum(ps, (s) => s.fg3 || 0), '–'],
+        showMakes && ['FT', ft, ps.some((s) => s.fta != null) ? `${sum(ps, (s) => s.ftm || 0)}/${sum(ps, (s) => s.fta || 0)}` : '–', '–'],
+      ].filter(Boolean);
+      const foot = g.oppStats
+        ? `<tfoot><tr><td>Lesher</td>${cols.map((c) => `<td>${c[2]}</td>`).join('')}</tr>
+             <tr><td>${esc(g.opp)}</td>${cols.map((c) => `<td>${c[3]}</td>`).join('')}</tr></tfoot>`
+        : '';
       html += `
         <div class="game">
           <h3><span class="res ${res}">${res}</span>vs ${esc(g.opp)}, ${g.us}–${g.them}</h3>
           <p class="meta">${fmtDate(g.date)}${extra ? ' · ' + extra : ''}</p>
           <div class="scroll"><table>
-            <thead><tr><th>Player</th><th>PTS</th><th>2PM</th><th>3PM</th><th>FT</th></tr></thead>
+            <thead><tr><th>Player</th>${cols.map((c) => `<th>${c[0]}</th>`).join('')}</tr></thead>
             <tbody>${players
-              .map(([name, s]) => {
-                const p = pts(s);
-                return `<tr><td>${esc(name)}</td><td${p ? '' : ' class="dim"'}>${p}</td><td>${s.fg2 || 0}</td><td>${s.fg3 || 0}</td><td>${ft(s)}</td></tr>`;
-              })
+              .map(([name, s]) => `<tr><td>${esc(name)}</td>${cols.map((c, i) => `<td${i === 0 && !pts(s) ? ' class="dim"' : ''}>${c[1](s)}</td>`).join('')}</tr>`)
               .join('')}</tbody>
+            ${foot}
           </table></div>
         </div>`;
     }

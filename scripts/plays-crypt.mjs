@@ -1,6 +1,5 @@
-// Encrypts the private pages (plays.private.html, stats.private.html) into plays.enc.js and
-// stats.enc.js, which plays.html and stats.html unlock in the browser with the team password. The
-// private files are gitignored and never published.
+// Encrypts the private page (plays.private.html) into plays.enc.js, which plays.html unlocks in
+// the browser with the team password. Private files are gitignored and never published.
 //
 //   PLAYS_PASSWORD='...' node scripts/plays-crypt.mjs encrypt
 //   PLAYS_PASSWORD='...' node scripts/plays-crypt.mjs decrypt   (rebuilds the private files)
@@ -16,7 +15,6 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PAGES = [
   { source: 'plays.private.html', output: 'plays.enc.js', global: 'PLAYS_ENCRYPTED' },
-  { source: 'stats.private.html', output: 'stats.enc.js', global: 'STATS_ENCRYPTED' },
 ].map((page) => ({ ...page, source: join(ROOT, page.source), output: join(ROOT, page.output) }));
 // The plays were encrypted first; their salt is the one browsers have remembered keys for.
 const SALT_PAGE = PAGES[0];
