@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="favicon-32x32.png">
+<title>Game Stats</title>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; background: #fff; overflow-x: hidden; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+h1 { margin: 0 0 .25rem; color: #002147; }
+.sub { color: #555; margin: 0 0 1.5rem; }
+.tabs { display: flex; gap: .5rem; margin: 0 0 1.5rem; }
+.tabs button { font: inherit; font-weight: 600; padding: .4rem 1.1rem; border-radius: 999px; border: 2px solid #002147; background: #fff; color: #002147; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: #002147; color: #fff; }
+h2 { margin: 2rem 0 .75rem; padding-bottom: .4rem; border-bottom: 3px solid #e60000; font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: #002147; }
+.record { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin: 0 0 .5rem; }
+.record div { border-top: 3px solid #002147; padding-top: .35rem; min-width: 7rem; }
+.record b { display: block; font-size: 1.5rem; color: #002147; }
+.record span { color: #555; font-size: .85rem; }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: .4rem .6rem; text-align: right; border-bottom: 1px solid #e3e3e3; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: #fff; }
+thead th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: #555; border-bottom: 2px solid #002147; }
+tbody tr:hover td { background: #f4f6f9; }
+tfoot td { font-weight: 700; border-top: 2px solid #002147; border-bottom: 0; }
+td.dim { color: #aaa; }
+.game { margin: 0 0 1.75rem; }
+.game h3 { margin: 0 0 .1rem; font-size: 1.05rem; color: #002147; }
+.game h3 .res { display: inline-block; min-width: 1.4rem; margin-right: .35rem; color: #fff; background: #1b7a3a; border-radius: .3rem; text-align: center; font-size: .85rem; padding: 0 .3rem; }
+.game h3 .res.L { background: #e60000; }
+.game .meta { margin: 0 0 .5rem; color: #666; font-size: .9rem; }
+.note { color: #666; font-size: .85rem; margin: .5rem 0 0; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Game Stats</h1>
+  <p class="sub">Lesher Boys Basketball, 2026–27. Taken from the scorebook.</p>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-team="V" aria-selected="true">Varsity</button>
+    <button role="tab" data-team="JV" aria-selected="false">JV</button>
+  </div>
+  <div id="out"></div>
+</main>
+<script>
+  // Add a game to the top of the list. Each player listed played in the game.
+  // fg2 / fg3 are made field goals; fta / ftm are free throws (leave them off when the scorebook didn't track makes).
+  // Points are worked out from the makes. `unassigned` is points in the final score that the scorebook didn't give to anyone.
+  const games = [
+    {
+      date: '2026-11-09', team: 'V', opp: 'Webber', us: 44, them: 39, unassigned: 4,
+      players: {
+        'Bodhi Hottman': { fg3: 4 },
+        'Ryder Rozell': { fg3: 4 },
+        'Carter Dowling': { fg3: 2, fta: 3, ftm: 2 },
+        'Asher Beauprez': { fg3: 1, fta: 2, ftm: 1 },
+        'Max Blanchard': { fg2: 1, fta: 2, ftm: 1 },
+        'Judah Harris': { fta: 2, ftm: 1 },
+        'William Garrett': {},
+        'Patrick Parker-Renga': {},
+        'Max Riojas': {},
+        'Connor Thorson': {},
+        'Stewart Rapley': {},
+        'August Parks': {},
+      },
+    },
+    {
+      date: '2026-11-09', team: 'JV', opp: 'Webber', us: 50, them: 47, ot: true,
+      players: {
+        'Thomas Langusch': { fg2: 2, fg3: 4, fta: 4, ftm: 4 },
+        'Hunter Steele-Wannemacher': { fg2: 3, fg3: 2, fta: 1, ftm: 1 },
+        'Patrick Parker-Renga': { fg2: 3, fta: 4, ftm: 3 },
+        'William Garrett': { fg2: 1, fg3: 1, fta: 4, ftm: 0 },
+        'Max Riojas': { fg2: 1, fta: 2, ftm: 1 },
+        'Miles Patton': {},
+        'Cole Haynes': {},
+      },
+    },
+    {
+      date: '2026-11-04', team: 'V', opp: 'Boltz', us: 53, them: 32, unassigned: 7,
+      players: {
+        'Bodhi Hottman': { fg2: 2, fg3: 3 },
+        'Carter Dowling': { fg2: 2, fg3: 3 },
+        'Connor Thorson': { fg2: 3 },
+        'Max Blanchard': { fg2: 3 },
+        'Judah Harris': { fg2: 2 },
+        'Ryder Rozell': { fg2: 2 },
+        'Stewart Rapley': {},
+        'Asher Beauprez': {},
+      },
+    },
+    {
+      date: '2026-11-04', team: 'JV', opp: 'Boltz', us: 49, them: 14, unassigned: 2,
+      players: {
+        'Thomas Langusch': { fg2: 3, fg3: 2 },
+        'William Garrett': { fg2: 2, fg3: 2 },
+        'Cole Haynes': { fg2: 4 },
+        'Hunter Steele-Wannemacher': { fg2: 1, fg3: 1 },
+        'August Parks': { fg2: 2 },
+        'Patrick Parker-Renga': { fg2: 2 },
+        'Max Riojas': { fg2: 1 },
+        'Miles Patton': { fg2: 1 },
+      },
+    },
+  ];
+
+  const pts = (s) => 2 * (s.fg2 || 0) + 3 * (s.fg3 || 0) + (s.ftm || 0);
+  const avg = (n, gp) => (gp ? (n / gp).toFixed(1) : '–');
+  const pct = (m, a) => (a ? Math.round((100 * m) / a) + '%' : '–');
+  const ft = (s) => (s.fta == null ? '–' : `${s.ftm}/${s.fta}`);
+  const fmtDate = (d) => new Date(d + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+  function render(team) {
+    const list = games.filter((g) => g.team === team);
+    const wins = list.filter((g) => g.us > g.them).length;
+    const forPts = list.reduce((n, g) => n + g.us, 0);
+    const against = list.reduce((n, g) => n + g.them, 0);
+
+    const totals = {};
+    for (const g of list) {
+      for (const [name, s] of Object.entries(g.players)) {
+        const t = (totals[name] ||= { gp: 0, pts: 0, fg2: 0, fg3: 0, fta: 0, ftm: 0 });
+        t.gp += 1;
+        t.pts += pts(s);
+        t.fg2 += s.fg2 || 0;
+        t.fg3 += s.fg3 || 0;
+        t.fta += s.fta || 0;
+        t.ftm += s.ftm || 0;
+      }
+    }
+    const rows = Object.entries(totals).sort((a, b) => b[1].pts / b[1].gp - a[1].pts / a[1].gp || a[0].localeCompare(b[0]));
+
+    let html = `
+      <div class="record">
+        <div><b>${wins}–${list.length - wins}</b><span>Record</span></div>
+        <div><b>${avg(forPts, list.length)}</b><span>Points per game</span></div>
+        <div><b>${avg(against, list.length)}</b><span>Allowed per game</span></div>
+      </div>
+      <h2>Season totals &amp; averages</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Player</th><th>GP</th><th>PTS</th><th>PPG</th><th>2PM</th><th>2PM/G</th><th>3PM</th><th>3PM/G</th><th>FT</th><th>FT%</th></tr></thead>
+        <tbody>${rows
+          .map(
+            ([name, t]) => `<tr${t.pts ? '' : ' class="zero"'}>
+              <td>${esc(name)}</td><td>${t.gp}</td><td>${t.pts}</td><td>${avg(t.pts, t.gp)}</td>
+              <td>${t.fg2}</td><td>${avg(t.fg2, t.gp)}</td><td>${t.fg3}</td><td>${avg(t.fg3, t.gp)}</td>
+              <td>${t.fta ? `${t.ftm}/${t.fta}` : '–'}</td><td>${pct(t.ftm, t.fta)}</td></tr>`
+          )
+          .join('')}</tbody>
+      </table></div>
+      <p class="note">FT% only counts games where the scorebook tracked free throw makes (Webber on).</p>
+      <h2>Games</h2>`;
+
+    for (const g of list) {
+      const players = Object.entries(g.players).sort((a, b) => pts(b[1]) - pts(a[1]) || a[0].localeCompare(b[0]));
+      const res = g.us > g.them ? 'W' : 'L';
+      const extra = [g.ot && 'Overtime', g.unassigned && `${g.unassigned} pts not credited to a player in the scorebook`].filter(Boolean).join(' · ');
+      html += `
+        <div class="game">
+          <h3><span class="res ${res}">${res}</span>vs ${esc(g.opp)}, ${g.us}–${g.them}</h3>
+          <p class="meta">${fmtDate(g.date)}${extra ? ' · ' + extra : ''}</p>
+          <div class="scroll"><table>
+            <thead><tr><th>Player</th><th>PTS</th><th>2PM</th><th>3PM</th><th>FT</th></tr></thead>
+            <tbody>${players
+              .map(([name, s]) => {
+                const p = pts(s);
+                return `<tr><td>${esc(name)}</td><td${p ? '' : ' class="dim"'}>${p}</td><td>${s.fg2 || 0}</td><td>${s.fg3 || 0}</td><td>${ft(s)}</td></tr>`;
+              })
+              .join('')}</tbody>
+          </table></div>
+        </div>`;
+    }
+    document.getElementById('out').innerHTML = html;
+  }
+
+  const tabs = document.querySelectorAll('.tabs button');
+  tabs.forEach((b) =>
+    b.addEventListener('click', () => {
+      tabs.forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+      render(b.dataset.team);
+    })
+  );
+  render('V');
+</script>
+</body>
+</html>
