@@ -50,34 +50,34 @@ td.dim { color: #aaa; }
 </main>
 <script>
   // Add a game to the top of the list. Each player listed played in the game.
-  // Per player: pts, reb (rebounds), stl (steals), pf (personal fouls). Leave a stat off when it wasn't tracked.
+  // Per player: pts, reb (rebounds), ast (assists), stl (steals), pf (personal fouls). Leave a stat off when it wasn't tracked.
   // `oppStats` holds the other team's rebound/steal/foul totals, `to` is our team turnovers, and `unassigned` is
   // points in the final score that the scorebook didn't give to anyone.
   const games = [
     {
       date: '2026-11-11', team: 'V', opp: 'Blevins', us: 52, them: 36, unassigned: 3, oppStats: { pf: 18 },
       players: {
-        'Carter Dowling': { pts: 17, pf: 3 },
-        'Bodhi Hottman': { pts: 11, pf: 1 },
-        'Judah Harris': { pts: 10, pf: 2 },
-        'Ryder Rozell': { pts: 5, pf: 2 },
-        'Max Blanchard': { pts: 3, pf: 2 },
-        'Asher Beauprez': { pts: 1, pf: 3 },
-        'August Parks': { pts: 1, pf: 0 },
-        'Patrick Parker-Renga': { pts: 1, pf: 0 },
+        'Carter Dowling': { pts: 17, ast: 1, pf: 3 },
+        'Bodhi Hottman': { pts: 11, ast: 2, pf: 1 },
+        'Judah Harris': { pts: 10, ast: 1, pf: 2 },
+        'Ryder Rozell': { pts: 5, ast: 0, pf: 2 },
+        'Max Blanchard': { pts: 3, ast: 0, pf: 2 },
+        'Asher Beauprez': { pts: 1, ast: 4, pf: 3 },
+        'August Parks': { pts: 1, ast: 0, pf: 0 },
+        'Patrick Parker-Renga': { pts: 1, ast: 1, pf: 0 },
       },
     },
     {
       date: '2026-11-11', team: 'JV', opp: 'Blevins', us: 60, them: 32, oppStats: { pf: 7 },
       players: {
-        'Thomas Langusch': { pts: 11, pf: 3 },
-        'Hunter Steele-Wannemacher': { pts: 11, pf: 2 },
-        'William Garrett': { pts: 9, pf: 2 },
-        'Patrick Parker-Renga': { pts: 8, pf: 2 },
-        'Max Riojas': { pts: 8, pf: 3 },
-        'Cole Haynes': { pts: 7, pf: 3 },
-        'Harry Hoban': { pts: 4, pf: 0 },
-        'Miles Patton': { pts: 2, pf: 2 },
+        'Thomas Langusch': { pts: 11, ast: 4, pf: 3 },
+        'Hunter Steele-Wannemacher': { pts: 11, ast: 2, pf: 2 },
+        'William Garrett': { pts: 9, ast: 0, pf: 2 },
+        'Patrick Parker-Renga': { pts: 8, ast: 2, pf: 2 },
+        'Max Riojas': { pts: 8, ast: 0, pf: 3 },
+        'Cole Haynes': { pts: 7, ast: 2, pf: 3 },
+        'Harry Hoban': { pts: 4, ast: 0, pf: 0 },
+        'Miles Patton': { pts: 2, ast: 1, pf: 2 },
       },
     },
     {
@@ -135,6 +135,7 @@ td.dim { color: #aaa; }
   // Stats besides points, shown only when at least one game in view tracked them.
   const STATS = [
     ['reb', 'REB', 'RPG'],
+    ['ast', 'AST', 'APG'],
     ['stl', 'STL', 'SPG'],
     ['pf', 'PF', 'PF/G'],
   ];
