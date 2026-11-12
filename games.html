@@ -35,6 +35,10 @@ td.dim { color: #aaa; }
 .game h3 .res { display: inline-block; min-width: 1.4rem; margin-right: .35rem; color: #fff; background: #1b7a3a; border-radius: .3rem; text-align: center; font-size: .85rem; padding: 0 .3rem; }
 .game h3 .res.L { background: #e60000; }
 .game .meta { margin: 0 0 .5rem; color: #666; font-size: .9rem; }
+thead th { cursor: pointer; user-select: none; }
+thead th:hover { color: #002147; }
+thead th[aria-sort]::after { content: ' ▼'; font-size: .7em; }
+thead th[aria-sort="ascending"]::after { content: ' ▲'; }
 .note { color: #666; font-size: .85rem; margin: .5rem 0 0; }
 </style>
 </head>
@@ -227,6 +231,40 @@ td.dim { color: #aaa; }
     }
     document.getElementById('out').innerHTML = html;
   }
+
+  // Click a column header to sort that table; click again to flip the order. Numbers sort high-to-low
+  // first, names A–Z. FT ("made–att") sorts by made, then attempts; "–" (not tracked) always sorts last.
+  const sortKey = (td) => {
+    const t = td.textContent.trim();
+    const m = t.match(/^(\d+)–(\d+)/);
+    if (m) return +m[1] + +m[2] / 1000;
+    const n = parseFloat(t);
+    return Number.isNaN(n) ? (t === '–' ? null : t.toLowerCase()) : n;
+  };
+  document.getElementById('out').addEventListener('click', (e) => {
+    const th = e.target.closest('thead th');
+    if (!th) return;
+    const table = th.closest('table');
+    const col = th.cellIndex;
+    const tbody = table.tBodies[0];
+    const rows = [...tbody.rows];
+    const keys = new Map(rows.map((r) => [r, sortKey(r.cells[col])]));
+    const isText = rows.some((r) => typeof keys.get(r) === 'string');
+    const dir = th.getAttribute('aria-sort') === 'descending' ? 'ascending'
+      : th.getAttribute('aria-sort') === 'ascending' ? 'descending'
+      : isText ? 'ascending' : 'descending';
+    const sign = dir === 'ascending' ? 1 : -1;
+    rows.sort((a, b) => {
+      const x = keys.get(a), y = keys.get(b);
+      if (x === y) return 0;
+      if (x == null) return 1;
+      if (y == null) return -1;
+      return (x < y ? -1 : 1) * sign;
+    });
+    tbody.append(...rows);
+    table.querySelectorAll('thead th').forEach((h) => h.removeAttribute('aria-sort'));
+    th.setAttribute('aria-sort', dir);
+  });
 
   const tabs = document.querySelectorAll('.tabs button');
   tabs.forEach((b) =>
