@@ -52,82 +52,83 @@ td.dim { color: #aaa; }
   // Add a game to the top of the list. Each player listed played in the game.
   // Per player: pts, reb (rebounds), ast (assists), stl (steals), pf (personal fouls). Leave a stat off when it wasn't tracked.
   // `oppStats` holds the other team's rebound/steal/foul totals, `to` is our team turnovers, and `unassigned` is
-  // points in the final score that the scorebook didn't give to anyone.
+  // points in the final score that the scorebook didn't give to anyone. `ft` is [made, attempted] free throws from
+  // the scorebook, and `ftPartial` marks a game whose scorebook likely missed some free throws.
   const games = [
     {
       date: '2026-11-11', team: 'V', opp: 'Blevins', us: 52, them: 36, unassigned: 3, oppStats: { pf: 18 },
       players: {
-        'Carter Dowling': { pts: 17, ast: 1, pf: 3 },
-        'Bodhi Hottman': { pts: 11, ast: 2, pf: 1 },
-        'Judah Harris': { pts: 10, ast: 1, pf: 2 },
-        'Ryder Rozell': { pts: 5, ast: 0, pf: 2 },
-        'Max Blanchard': { pts: 3, ast: 0, pf: 2 },
-        'Asher Beauprez': { pts: 1, ast: 4, pf: 3 },
-        'August Parks': { pts: 1, ast: 0, pf: 0 },
-        'Patrick Parker-Renga': { pts: 1, ast: 1, pf: 0 },
+        'Carter Dowling': { pts: 17, ast: 1, pf: 3, ft: [1, 1] },
+        'Bodhi Hottman': { pts: 11, ast: 2, pf: 1, ft: [2, 2] },
+        'Judah Harris': { pts: 10, ast: 1, pf: 2, ft: [2, 3] },
+        'Ryder Rozell': { pts: 5, ast: 0, pf: 2, ft: [0, 0] },
+        'Max Blanchard': { pts: 3, ast: 0, pf: 2, ft: [1, 1] },
+        'Asher Beauprez': { pts: 1, ast: 4, pf: 3, ft: [1, 1] },
+        'August Parks': { pts: 1, ast: 0, pf: 0, ft: [1, 2] },
+        'Patrick Parker-Renga': { pts: 1, ast: 1, pf: 0, ft: [1, 1] },
       },
     },
     {
       date: '2026-11-11', team: 'JV', opp: 'Blevins', us: 60, them: 32, oppStats: { pf: 7 },
       players: {
-        'Thomas Langusch': { pts: 11, ast: 4, pf: 3 },
-        'Hunter Steele-Wannemacher': { pts: 11, ast: 2, pf: 2 },
-        'William Garrett': { pts: 9, ast: 0, pf: 2 },
-        'Patrick Parker-Renga': { pts: 8, ast: 2, pf: 2 },
-        'Max Riojas': { pts: 8, ast: 0, pf: 3 },
-        'Cole Haynes': { pts: 7, ast: 2, pf: 3 },
-        'Harry Hoban': { pts: 4, ast: 0, pf: 0 },
-        'Miles Patton': { pts: 2, ast: 1, pf: 2 },
+        'Thomas Langusch': { pts: 11, ast: 4, pf: 3, ft: [0, 0] },
+        'Hunter Steele-Wannemacher': { pts: 11, ast: 2, pf: 2, ft: [1, 1] },
+        'William Garrett': { pts: 9, ast: 0, pf: 2, ft: [0, 0] },
+        'Patrick Parker-Renga': { pts: 8, ast: 2, pf: 2, ft: [0, 0] },
+        'Max Riojas': { pts: 8, ast: 0, pf: 3, ft: [0, 0] },
+        'Cole Haynes': { pts: 7, ast: 2, pf: 3, ft: [0, 1] },
+        'Harry Hoban': { pts: 4, ast: 0, pf: 0, ft: [0, 0] },
+        'Miles Patton': { pts: 2, ast: 1, pf: 2, ft: [0, 0] },
       },
     },
     {
       date: '2026-11-09', team: 'V', opp: 'Webber', us: 44, them: 39, to: 10, oppStats: { reb: 23, pf: 11 },
       players: {
-        'Ryder Rozell': { pts: 15, reb: 4, stl: 4, pf: 1 },
-        'Bodhi Hottman': { pts: 12, reb: 1, stl: 1, pf: 1 },
-        'Carter Dowling': { pts: 9, reb: 0, stl: 4, pf: 0 },
-        'Asher Beauprez': { pts: 4, reb: 1, stl: 2, pf: 1 },
-        'Max Blanchard': { pts: 3, reb: 1, stl: 2, pf: 1 },
-        'Judah Harris': { pts: 1, reb: 1, stl: 0, pf: 2 },
-        'August Parks': { pts: 0, reb: 3, stl: 2, pf: 2 },
+        'Ryder Rozell': { pts: 15, reb: 4, stl: 4, pf: 1, ft: [0, 0] },
+        'Bodhi Hottman': { pts: 12, reb: 1, stl: 1, pf: 1, ft: [0, 0] },
+        'Carter Dowling': { pts: 9, reb: 0, stl: 4, pf: 0, ft: [2, 3] },
+        'Asher Beauprez': { pts: 4, reb: 1, stl: 2, pf: 1, ft: [1, 2] },
+        'Max Blanchard': { pts: 3, reb: 1, stl: 2, pf: 1, ft: [1, 2] },
+        'Judah Harris': { pts: 1, reb: 1, stl: 0, pf: 2, ft: [1, 2] },
+        'August Parks': { pts: 0, reb: 3, stl: 2, pf: 2, ft: [0, 0] },
       },
     },
     {
       date: '2026-11-09', team: 'JV', opp: 'Webber', us: 50, them: 48, ot: true, to: 11, oppStats: { reb: 27, pf: 16 },
       players: {
-        'Thomas Langusch': { pts: 20, reb: 0, stl: 0, pf: 3 },
-        'Patrick Parker-Renga': { pts: 12, reb: 5, stl: 5, pf: 1 },
-        'Hunter Steele-Wannemacher': { pts: 8, reb: 3, stl: 0, pf: 4 },
-        'William Garrett': { pts: 5, reb: 1, stl: 1, pf: 3 },
-        'Max Riojas': { pts: 3, reb: 2, stl: 0, pf: 0 },
-        'Miles Patton': { pts: 2, reb: 2, stl: 1, pf: 3 },
-        'Cole Haynes': { pts: 0, reb: 0, stl: 1, pf: 4 },
+        'Thomas Langusch': { pts: 20, reb: 0, stl: 0, pf: 3, ft: [4, 4] },
+        'Patrick Parker-Renga': { pts: 12, reb: 5, stl: 5, pf: 1, ft: [3, 4] },
+        'Hunter Steele-Wannemacher': { pts: 8, reb: 3, stl: 0, pf: 4, ft: [1, 1] },
+        'William Garrett': { pts: 5, reb: 1, stl: 1, pf: 3, ft: [0, 3] },
+        'Max Riojas': { pts: 3, reb: 2, stl: 0, pf: 0, ft: [1, 2] },
+        'Miles Patton': { pts: 2, reb: 2, stl: 1, pf: 3, ft: [0, 0] },
+        'Cole Haynes': { pts: 0, reb: 0, stl: 1, pf: 4, ft: [0, 0] },
       },
     },
     {
-      date: '2026-11-04', team: 'V', opp: 'Boltz', us: 53, them: 32, oppStats: { reb: 24, stl: 4, pf: 11 },
+      date: '2026-11-04', team: 'V', opp: 'Boltz', us: 53, them: 32, ftPartial: true, oppStats: { reb: 24, stl: 4, pf: 11 },
       players: {
-        'Bodhi Hottman': { pts: 17, reb: 4, stl: 3, pf: 1 },
-        'Carter Dowling': { pts: 12, reb: 6, stl: 3, pf: 2 },
-        'Connor Thorson': { pts: 6, reb: 2, stl: 2, pf: 3 },
-        'Judah Harris': { pts: 6, reb: 3, stl: 1, pf: 1 },
-        'Max Blanchard': { pts: 6, reb: 2, stl: 1, pf: 2 },
-        'Ryder Rozell': { pts: 4, reb: 3, stl: 6, pf: 2 },
-        'Stewart Rapley': { pts: 2, reb: 6, stl: 1, pf: 0 },
-        'Asher Beauprez': { pts: 0, reb: 1, stl: 1, pf: 1 },
+        'Bodhi Hottman': { pts: 17, reb: 4, stl: 3, pf: 1, ft: [0, 0] },
+        'Carter Dowling': { pts: 12, reb: 6, stl: 3, pf: 2, ft: [1, 1] },
+        'Connor Thorson': { pts: 6, reb: 2, stl: 2, pf: 3, ft: [0, 0] },
+        'Judah Harris': { pts: 6, reb: 3, stl: 1, pf: 1, ft: [1, 1] },
+        'Max Blanchard': { pts: 6, reb: 2, stl: 1, pf: 2, ft: [1, 1] },
+        'Ryder Rozell': { pts: 4, reb: 3, stl: 6, pf: 2, ft: [0, 2] },
+        'Stewart Rapley': { pts: 2, reb: 6, stl: 1, pf: 0, ft: [0, 0] },
+        'Asher Beauprez': { pts: 0, reb: 1, stl: 1, pf: 1, ft: [0, 0] },
       },
     },
     {
-      date: '2026-11-04', team: 'JV', opp: 'Boltz', us: 49, them: 14, oppStats: { reb: 15, stl: 0, pf: 8 },
+      date: '2026-11-04', team: 'JV', opp: 'Boltz', us: 49, them: 14, ftPartial: true, oppStats: { reb: 15, stl: 0, pf: 8 },
       players: {
-        'Thomas Langusch': { pts: 12, reb: 1, pf: 1 },
-        'William Garrett': { pts: 10, reb: 4, pf: 2 },
-        'Cole Haynes': { pts: 9, reb: 0, pf: 1 },
-        'Hunter Steele-Wannemacher': { pts: 5, reb: 5, pf: 0 },
-        'August Parks': { pts: 4, reb: 6, pf: 0 },
-        'Patrick Parker-Renga': { pts: 4, reb: 2, pf: 2 },
-        'Max Riojas': { pts: 3, reb: 0, pf: 0 },
-        'Miles Patton': { pts: 2, reb: 0, pf: 1 },
+        'Thomas Langusch': { pts: 12, reb: 1, pf: 1, ft: [0, 0] },
+        'William Garrett': { pts: 10, reb: 4, pf: 2, ft: [0, 0] },
+        'Cole Haynes': { pts: 9, reb: 0, pf: 1, ft: [2, 3] },
+        'Hunter Steele-Wannemacher': { pts: 5, reb: 5, pf: 0, ft: [0, 0] },
+        'August Parks': { pts: 4, reb: 6, pf: 0, ft: [0, 0] },
+        'Patrick Parker-Renga': { pts: 4, reb: 2, pf: 2, ft: [0, 1] },
+        'Max Riojas': { pts: 3, reb: 0, pf: 0, ft: [1, 1] },
+        'Miles Patton': { pts: 2, reb: 0, pf: 1, ft: [0, 0] },
       },
     },
   ];
@@ -144,6 +145,8 @@ td.dim { color: #aaa; }
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const sum = (arr, f) => arr.reduce((n, x) => n + f(x), 0);
   const tracked = (players, key) => players.some((s) => s[key] != null);
+  const pct = (m, a) => (a ? Math.round((100 * m) / a) + '%' : '–');
+  const ftCell = (ft) => (ft ? `${ft[0]}–${ft[1]}` : '–');
 
   function render(team) {
     const list = games.filter((g) => g.team === team);
@@ -151,6 +154,7 @@ td.dim { color: #aaa; }
     const toGames = list.filter((g) => g.to != null);
     const allPlayers = list.flatMap((g) => Object.values(g.players));
     const stats = STATS.filter(([key]) => tracked(allPlayers, key));
+    const hasFt = tracked(allPlayers, 'ft');
 
     const totals = {};
     for (const g of list) {
@@ -158,6 +162,10 @@ td.dim { color: #aaa; }
         const t = (totals[name] ||= { gp: 0, pts: 0 });
         t.gp += 1;
         t.pts += s.pts;
+        if (s.ft) {
+          t.ftm = (t.ftm || 0) + s.ft[0];
+          t.fta = (t.fta || 0) + s.ft[1];
+        }
         for (const [key] of stats) {
           if (s[key] == null) continue;
           t[key] = (t[key] || 0) + s[key];
@@ -176,16 +184,16 @@ td.dim { color: #aaa; }
       </div>
       <h2>Season totals &amp; averages</h2>
       <div class="scroll"><table>
-        <thead><tr><th>Player</th><th>GP</th><th>PTS</th><th>PPG</th>${stats.map(([, tot, per]) => `<th>${tot}</th><th>${per}</th>`).join('')}</tr></thead>
+        <thead><tr><th>Player</th><th>GP</th><th>PTS</th><th>PPG</th>${stats.map(([, tot, per]) => `<th>${tot}</th><th>${per}</th>`).join('')}${hasFt ? '<th>FT</th><th>FT%</th>' : ''}</tr></thead>
         <tbody>${rows
           .map(
             ([name, t]) => `<tr><td>${esc(name)}</td><td>${t.gp}</td><td>${t.pts}</td><td>${avg(t.pts, t.gp)}</td>${stats
               .map(([key]) => `<td>${t[key + 'Gp'] ? t[key] : '–'}</td><td>${avg(t[key], t[key + 'Gp'])}</td>`)
-              .join('')}</tr>`
+              .join('')}${hasFt ? `<td>${t.fta != null ? `${t.ftm}–${t.fta}` : '–'}</td><td>${pct(t.ftm, t.fta)}</td>` : ''}</tr>`
           )
           .join('')}</tbody>
       </table></div>
-      <p class="note">Each average only counts games where that stat was tracked.</p>
+      <p class="note">Each average only counts games where that stat was tracked. Free throws come from the scorebook${list.some((g) => g.ftPartial) ? ', which likely missed some at Boltz' : ''}.</p>
       <h2>Games</h2>`;
 
     for (const g of list) {
@@ -196,18 +204,22 @@ td.dim { color: #aaa; }
         g.ot && 'Overtime',
         g.to != null && `${g.to} turnovers`,
         g.unassigned && `${g.unassigned} pts not credited to a player in the scorebook`,
+        g.ftPartial && 'Free throws may be incomplete',
       ].filter(Boolean).join(' · ');
       const cols = STATS.filter(([key]) => tracked(ps, key));
-      const foot = `<tfoot><tr><td>Lesher</td><td>${g.us}</td>${cols.map(([key]) => `<td>${sum(ps, (s) => s[key] || 0)}</td>`).join('')}</tr>
-          <tr><td>${esc(g.opp)}</td><td>${g.them}</td>${cols.map(([key]) => `<td>${g.oppStats?.[key] ?? '–'}</td>`).join('')}</tr></tfoot>`;
+      const gameFt = tracked(ps, 'ft');
+      const ftm = sum(ps, (p) => p.ft?.[0] || 0);
+      const fta = sum(ps, (p) => p.ft?.[1] || 0);
+      const foot = `<tfoot><tr><td>Lesher</td><td>${g.us}</td>${cols.map(([key]) => `<td>${sum(ps, (s) => s[key] || 0)}</td>`).join('')}${gameFt ? `<td>${ftm}–${fta} (${pct(ftm, fta)})</td>` : ''}</tr>
+          <tr><td>${esc(g.opp)}</td><td>${g.them}</td>${cols.map(([key]) => `<td>${g.oppStats?.[key] ?? '–'}</td>`).join('')}${gameFt ? '<td>–</td>' : ''}</tr></tfoot>`;
       html += `
         <div class="game">
           <h3><span class="res ${res}">${res}</span>vs ${esc(g.opp)}, ${g.us}–${g.them}</h3>
           <p class="meta">${fmtDate(g.date)}${extra ? ' · ' + extra : ''}</p>
           <div class="scroll"><table>
-            <thead><tr><th>Player</th><th>PTS</th>${cols.map(([, label]) => `<th>${label}</th>`).join('')}</tr></thead>
+            <thead><tr><th>Player</th><th>PTS</th>${cols.map(([, label]) => `<th>${label}</th>`).join('')}${gameFt ? '<th>FT</th>' : ''}</tr></thead>
             <tbody>${players
-              .map(([name, s]) => `<tr><td>${esc(name)}</td><td${s.pts ? '' : ' class="dim"'}>${s.pts}</td>${cols.map(([key]) => `<td>${s[key] ?? '–'}</td>`).join('')}</tr>`)
+              .map(([name, s]) => `<tr><td>${esc(name)}</td><td${s.pts ? '' : ' class="dim"'}>${s.pts}</td>${cols.map(([key]) => `<td>${s[key] ?? '–'}</td>`).join('')}${gameFt ? `<td${s.ft?.[1] ? '' : ' class="dim"'}>${ftCell(s.ft)}</td>` : ''}</tr>`)
               .join('')}</tbody>
             ${foot}
           </table></div>
