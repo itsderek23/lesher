@@ -60,6 +60,32 @@ thead th[aria-sort="ascending"]::after { content: ' ▲'; }
   // the scorebook, and `ftPartial` marks a game whose scorebook likely missed some free throws.
   const games = [
     {
+      date: '2026-11-13', team: 'V', opp: 'Lincoln', us: 47, them: 28, unassigned: 1, oppStats: { pf: 9 },
+      players: {
+        'Bodhi Hottman': { pts: 15, pf: 2, ft: [1, 1] },
+        'Ryder Rozell': { pts: 11, pf: 0, ft: [0, 1] },
+        'Carter Dowling': { pts: 10, pf: 2, ft: [0, 0] },
+        'August Parks': { pts: 4, pf: 0, ft: [0, 0] },
+        'Max Blanchard': { pts: 2, pf: 2, ft: [0, 0] },
+        'Patrick Parker-Renga': { pts: 2, pf: 0, ft: [0, 0] },
+        'Judah Harris': { pts: 1, pf: 3, ft: [1, 1] },
+        'Asher Beauprez': { pts: 1, pf: 3, ft: [1, 1] },
+      },
+    },
+    {
+      date: '2026-11-13', team: 'JV', opp: 'Lincoln', us: 45, them: 7, unassigned: 3, oppStats: { pf: 5 },
+      players: {
+        'Thomas Langusch': { pts: 12, pf: 3, ft: [0, 0] },
+        'Patrick Parker-Renga': { pts: 7, pf: 1, ft: [1, 1] },
+        'Cole Haynes': { pts: 6, pf: 1, ft: [0, 0] },
+        'Harry Hoban': { pts: 5, pf: 1, ft: [1, 1] },
+        'Hunter Steele-Wannemacher': { pts: 5, pf: 1, ft: [1, 1] },
+        'August Parks': { pts: 4, pf: 0, ft: [0, 0] },
+        'Max Riojas': { pts: 3, pf: 1, ft: [1, 1] },
+        'Miles Patton': { pts: 0, pf: 0, ft: [0, 1] },
+      },
+    },
+    {
       date: '2026-11-11', team: 'V', opp: 'Blevins', us: 52, them: 36, to: 12, oppStats: { reb: 18, pf: 18 },
       players: {
         'Carter Dowling': { pts: 17, reb: 3, ast: 1, stl: 3, pf: 3, ft: [1, 1] },
