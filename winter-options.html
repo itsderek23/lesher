@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Winter Options - 🏀 Lesher Boys Basketball</title>
+  <meta name="description" content="Rec leagues and club teams where 7th grade boys in Fort Collins and Northern Colorado can play this winter" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    .wo { max-width: 760px; }
+    .wo-intro { color: #444; margin: 0 0 1rem; }
+    .wo-toc { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 2rem; }
+    .wo-toc a {
+      font-size: .9rem; padding: .3rem .9rem; border: 1px solid #ccc; border-radius: 999px;
+      text-decoration: none; color: #002147; background: #fff;
+    }
+    .wo-toc a:hover { border-color: #002147; }
+    .wo h2 {
+      margin: 2.5rem 0 .25rem; padding-bottom: .4rem; border-bottom: 3px solid #e60000;
+      font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; color: #002147;
+      scroll-margin-top: 1rem;
+    }
+    .wo h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; color: #666; margin-left: .5rem; }
+    .wo h3 { margin: 0; font-size: 1.15rem; line-height: 1.3; }
+
+    .wo-dates { list-style: none; margin: .75rem 0 0; padding: 0; }
+    .wo-dates li { display: grid; grid-template-columns: 4.5rem 1fr; gap: .75rem; padding: .55rem 0; border-bottom: 1px solid #e6e8ec; align-items: baseline; }
+    .wo-dates time { font-weight: 700; color: #002147; font-variant-numeric: tabular-nums; }
+    .wo-dates span { min-width: 0; }
+
+    .chip { display: inline-block; font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; padding: .05rem .5rem; border-radius: 999px; margin-right: .5rem; vertical-align: 1px; }
+    .chip.club { background: #fde8e8; color: #b00000; }
+    .chip.rec { background: #e3ebf5; color: #002147; }
+
+    .wo-card { border: 1px solid #e6e8ec; border-radius: .75rem; padding: 1rem 1.15rem; margin: 1rem 0 0; display: flex; flex-direction: column; gap: .75rem; }
+    .wo-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: .5rem .75rem; }
+    .wo-where { color: #666; font-size: .9rem; }
+    .pill { font-size: .75rem; font-weight: 600; padding: .15rem .65rem; border-radius: 999px; white-space: nowrap; }
+    .pill.open { background: #e2f3e8; color: #1f6b3a; }
+    .pill.wait { background: #fff3d6; color: #7a4f00; }
+    .pill.try { background: #fde8e8; color: #b00000; }
+    .wo-card dl { display: grid; grid-template-columns: 7rem 1fr; gap: .35rem .9rem; margin: 0; }
+    .wo-card dt { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #666; padding-top: .2rem; }
+    .wo-card dd { margin: 0; min-width: 0; }
+    .wo-card p { margin: 0; }
+    .wo-tip { font-size: .95rem; background: #f5f6f8; border-radius: .5rem; padding: .6rem .8rem; }
+    .contact { user-select: all; font-weight: 500; }
+    .wo-top { margin: 1rem 0 0; font-size: .9rem; }
+    .wo-note { color: #666; font-size: .9rem; border-top: 1px solid #eee; margin-top: 2.5rem; padding-top: 1rem; }
+
+    .to-top {
+      position: fixed; right: 1rem; bottom: 1rem; z-index: 50;
+      background: #002147; color: #fff; text-decoration: none; font-size: .9rem; font-weight: 600;
+      padding: .5rem .9rem; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .to-top[hidden] { display: none; }
+
+    @media (max-width: 520px) {
+      .wo-card dl { grid-template-columns: 1fr; gap: .1rem; }
+      .wo-card dd { margin-bottom: .5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <nav class="nav">
+      <div class="brand"><a href="index.html">🏀 Lesher Boys Basketball</a></div>
+      <button class="menu">☰</button>
+      <div class="links">
+        <a href="index.html">Home</a>
+        <a href="https://band.us/n/a0a8bak2ydDa9" target="_blank">
+          <img src="band_logo.png" class="band_logo">Band App
+        </a>
+        <a href="school-season.html">Season Info</a>
+        <a href="sunday_open_gyms.html">Open Gyms</a>
+        <a href="winter-options.html">Winter Options</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="wrap wo" id="top">
+      <h1>Where 7th Grade Boys Can Play This Winter</h1>
+      <p class="wo-intro">Rec leagues and club teams in Fort Collins and Northern Colorado with a spot for a 7th grader this season, as of November 15, 2026. Spots and dates move fast, so confirm with each program before you count on it.</p>
+
+      <nav class="wo-toc" aria-label="On this page">
+        <a href="#key-dates">Key dates</a>
+        <a href="#rec-leagues">Rec leagues</a>
+        <a href="#club-teams">Club teams</a>
+      </nav>
+
+      <h2 id="key-dates">Key dates</h2>
+      <ul class="wo-dates">
+        <li><time>Dec 5</time><span><span class="chip club">Club</span><a href="https://www.state38basketball.com/res/tryout" target="_blank" rel="noopener">State 38 United tryout</a>, 6th/7th boys, 1:00–2:30 pm</span></li>
+        <li><time>Dec 13</time><span><span class="chip rec">Rec</span><a href="https://cofortcollinsweb.myvscloud.com/webtrac/web/iteminfo.html?Module=AR&amp;FMID=226349536" target="_blank" rel="noopener">Fort Collins Recreator registration</a> (waitlist) closes at 3:00 pm</span></li>
+        <li><time>Dec 21</time><span><span class="chip club">Club</span><a href="https://nocosportscenter.teamsidelinesite.com/programdetails?programId=120034" target="_blank" rel="noopener">NOCO Select makeup tryouts</a>, 6th/7th grade, 12–1 pm</span></li>
+        <li><time>Dec 28</time><span><span class="chip rec">Rec</span><a href="https://nocosportscenter.teamsidelinesite.com/programdetails?programId=114948" target="_blank" rel="noopener">NOCO Winter 5v5 player evaluations</a>, 5–9 pm</span></li>
+      </ul>
+
+      <h2 id="rec-leagues">Rec leagues <small>Everyone plays, no tryout</small></h2>
+
+      <article class="wo-card">
+        <div class="wo-head">
+          <div>
+            <h3>NOCO Sports Center · Winter 5v5</h3>
+            <div class="wo-where">Windsor · 5699 Crooked Stick Dr · Individual registration</div>
+          </div>
+          <span class="pill open">Open</span>
+        </div>
+        <dl>
+          <dt>Grades</dt><dd>3rd–8th, boys teams</dd>
+          <dt>Cost</dt><dd>$345 per player (jersey included)</dd>
+          <dt>Practices</dt><dd>Twice a week, 1 hour. Pick Mon/Wed or Tue/Thu, between 4:30 and 9:30 pm</dd>
+          <dt>Games</dt><dd>10+ games, 2 per Saturday: Jan 9, 23, 30, Feb 6. Playoffs Feb 20 &amp; 27</dd>
+          <dt>Evaluations</dt><dd>Monday, Dec 28, 5–9 pm (time emailed beforehand)</dd>
+        </dl>
+        <p class="wo-tip"><strong>Playing with friends:</strong> players can request specific teammates and/or a coach. A parent who head-coaches doesn't pay for their own player.</p>
+        <p><a href="https://nocosportscenter.teamsidelinesite.com/programdetails?programId=114948" target="_blank" rel="noopener">Winter 5v5 details &amp; registration</a> · <span class="contact">info@nocosportscenter.com</span></p>
+      </article>
+
+      <article class="wo-card">
+        <div class="wo-head">
+          <div>
+            <h3>NOCO Sports Center · Team registration</h3>
+            <div class="wo-where">Windsor · For a group of boys with their own coach</div>
+          </div>
+          <span class="pill open">Open</span>
+        </div>
+        <dl>
+          <dt>Grades</dt><dd>3rd–8th, boys and girls teams</dd>
+          <dt>Cost</dt><dd>$1,400 per team ($1,350 each for 2–4 teams)</dd>
+          <dt>Games</dt><dd>Same Saturdays as above, 10-game minimum. NSC staffs the scorer's table</dd>
+        </dl>
+        <p><a href="https://nocosportscenter.teamsidelinesite.com/programdetails?programId=114946" target="_blank" rel="noopener">Team league details &amp; registration</a></p>
+      </article>
+
+      <article class="wo-card">
+        <div class="wo-head">
+          <div>
+            <h3>Fort Collins Recreator · Boys 7th/8th Intermediate</h3>
+            <div class="wo-where">City of Fort Collins · Activity #214905-01</div>
+          </div>
+          <span class="pill wait">Waitlist</span>
+        </div>
+        <dl>
+          <dt>Cost</dt><dd>$150 (Jr. Nuggets jersey included)</dd>
+          <dt>Season</dt><dd>Jan 11 – Mar 6, 2027. 1–2 practices a week, 6 games, end-of-season tournament</dd>
+          <dt>Location</dt><dd>To be announced. Teams are formed randomly by the city</dd>
+          <dt>Sign up by</dt><dd>Dec 13, 3:00 pm</dd>
+        </dl>
+        <p class="wo-tip"><strong>Worth a call:</strong> Youth Sports, <span class="contact">970-416-2898</span>. Volunteering to coach (<span class="contact">970-416-4299</span>) can help open spots.</p>
+        <p><a href="https://cofortcollinsweb.myvscloud.com/webtrac/web/iteminfo.html?Module=AR&amp;FMID=226349536" target="_blank" rel="noopener">Join the waitlist on WebTrac</a></p>
+      </article>
+
+      <p class="wo-top"><a href="#top">↑ Back to top</a></p>
+
+      <h2 id="club-teams">Club teams <small>Tryout or invitation</small></h2>
+
+      <article class="wo-card">
+        <div class="wo-head">
+          <div>
+            <h3>State 38 United</h3>
+            <div class="wo-where">Fort Collins · Pursuit Training &amp; Performance Gym</div>
+          </div>
+          <span class="pill try">Tryout Dec 5</span>
+        </div>
+        <dl>
+          <dt>Tryout</dt><dd>Saturday, Dec 5, 1:00–2:30 pm (6th/7th grade boys)</dd>
+          <dt>Tryout fee</dt><dd>$20 online, $30 walk-up (check only)</dd>
+          <dt>Season</dt><dd>Jan 4 – Mar 7, 2027</dd>
+          <dt>If offered</dt><dd>24 hours to accept. $250 non-refundable deposit. Season fee not posted</dd>
+        </dl>
+        <p class="wo-tip"><strong>Heads up:</strong> this is a smaller tryout to fill openings on existing teams. New teams get added only if enough players show up.</p>
+        <p><a href="https://www.state38basketball.com/res/tryout" target="_blank" rel="noopener">Tryout details &amp; registration</a> · <span class="contact">will@state38basketball.com</span></p>
+      </article>
+
+      <article class="wo-card">
+        <div class="wo-head">
+          <div>
+            <h3>NOCO Select</h3>
+            <div class="wo-where">Windsor · NOCO Sports Center's club program</div>
+          </div>
+          <span class="pill try">Tryout Dec 21</span>
+        </div>
+        <dl>
+          <dt>Tryout</dt><dd>Monday, Dec 21, 12:00–1:00 pm (6th/7th grade). Free</dd>
+          <dt>Where</dt><dd>5699 Crooked Stick Dr, Windsor</dd>
+        </dl>
+        <p><a href="https://nocosportscenter.teamsidelinesite.com/programdetails?programId=120034" target="_blank" rel="noopener">Makeup tryout details &amp; registration</a></p>
+      </article>
+
+      <article class="wo-card">
+        <div class="wo-head">
+          <div>
+            <h3>Colorado Mambas</h3>
+            <div class="wo-where">Fort Collins · House of Hoops, 1833 E Harmony Rd</div>
+          </div>
+          <span class="pill wait">Ask about spots</span>
+        </div>
+        <dl>
+          <dt>Status</dt><dd>Main tryouts were in August. Very limited spots may be open, so email to ask</dd>
+          <dt>Cost</dt><dd>Middle school $500–$600, plus $120 one-time for jersey, bag and tee</dd>
+          <dt>Format</dt><dd>Practices in Fort Collins. League games most every-other Sunday afternoon, plus a couple of tournaments</dd>
+        </dl>
+        <p><a href="https://hohbasketball.com/pages/club-ball-colorado-mambas" target="_blank" rel="noopener">Club page</a> · <span class="contact">marquez@hohbasketball.com</span> · text <span class="contact">707-812-2237</span></p>
+      </article>
+
+      <p class="wo-top"><a href="#top">↑ Back to top</a></p>
+
+      <p class="wo-note">Compiled November 15, 2026 from each program's website. Fees, dates and openings can change, so check with the program before registering.</p>
+    </section>
+  </main>
+
+  <a href="#top" class="to-top" hidden>↑ Top</a>
+
+  <script>
+    document.querySelector('.menu').addEventListener('click', () => {
+      document.body.classList.toggle('open');
+    });
+    const toTop = document.querySelector('.to-top');
+    const syncToTop = () => { toTop.hidden = window.scrollY < 400; };
+    window.addEventListener('scroll', syncToTop, { passive: true });
+    syncToTop();
+  </script>
+</body>
+</html>
